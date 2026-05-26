@@ -200,7 +200,7 @@ function cleanupExpiredAttempts() {
 
 export async function POST(request: NextRequest) {
   try {
-    const clientIp = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const clientIp = (request as any).ip || request.headers.get('x-forwarded-for') || 'unknown';
 
     await Logger.info(LogType.AUTH, '登录请求到达', {
       ip: clientIp,

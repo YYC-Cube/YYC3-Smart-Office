@@ -1,6 +1,7 @@
 'use client';
 
 import Head from 'next/head';
+import Image from 'next/image';
 import type React from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -24,12 +25,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 
-// 临时开发标志：在登录前自动使用右侧验证码
-const DEV_AUTO_FILL_CAPTCHA = true;
+const DEV_AUTO_FILL_CAPTCHA = process.env.NODE_ENV === 'development';
 
 // Logo占位组件，替换已删除的Logo组件
 function LogoPlaceholder() {
-  return <img src="/yyc3-icons/pwa/icon-192x192.png" alt="YYC³" className="h-10 w-10 rounded-md" />;
+  return <Image src="/yyc3-icons/pwa/icon-192x192.png" alt="YYC³" className="h-10 w-10 rounded-md" width={40} height={40} />;
 }
 // 移除不存在的Logo组件导入
 

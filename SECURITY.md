@@ -1,21 +1,53 @@
-# Security Policy
+# YYC³ Smart-Office 安全策略
 
-## Supported Versions
+## 支持的版本
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+| 版本 | 状态 | 说明 |
+| ------- | ------------------ | --- |
+| 1.0.x | :white_check_mark: | 当前稳定版本，持续安全更新 |
+| < 1.0 | :x: | 不再维护 |
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## 安全架构
 
-## Reporting a Vulnerability
+本项目实施以下安全机制：
 
-Use this section to tell people how to report a vulnerability.
+- **JWT 认证**: 24小时过期令牌 + 令牌刷新机制，生产环境强制 32 位以上密钥
+- **CSRF 保护**: 双重令牌验证（Cookie + Header），绑定会话/IP/UA，支持 Redis 分布式存储
+- **密码安全**: bcrypt 14轮哈希，强制复杂度校验（大小写+数字+特殊字符）
+- **速率限制**: IP 级别（5次/15分钟）+ 用户级别（3次/30分钟）双重登录限流
+- **输入验证**: Zod schema 全 API 输入验证 + XSS 净化
+- **安全头**: CSP / X-Frame-Options / X-XSS-Protection / X-Content-Type-Options
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+## 环境变量安全
+
+生产环境必须设置以下变量：
+
+| 变量 | 要求 | 说明 |
+|------|------|------|
+| `JWT_SECRET` | ≥ 32 字符 | JWT 签名密钥 |
+| `DATABASE_URL` | 必填 | PostgreSQL 连接字符串 |
+| `CSRF_SECRET` | 推荐 | CSRF 令牌加密密钥 |
+| `UPSTASH_REDIS_REST_URL` | 可选 | Redis 存储（多实例部署必需） |
+| `UPSTASH_REDIS_REST_TOKEN` | 可选 | Redis 认证令牌 |
+
+## 报告安全漏洞
+
+如果您发现安全漏洞，请通过以下方式报告：
+
+1. **请勿**在公开的 GitHub Issue 中报告安全漏洞
+2. 请发送邮件至 security@0379.email，包含：
+   - 漏洞描述和影响范围
+   - 复现步骤
+   - 可能的修复建议
+3. 我们将在 48 小时内确认收到，并在 7 个工作日内提供初步评估
+4. 漏洞确认后，我们将优先发布修复版本
+
+## 安全更新策略
+
+- **严重漏洞**: 24小时内发布热修复
+- **高危漏洞**: 3个工作日内发布补丁
+- **中低危漏洞**: 纳入下一个常规版本发布
+
+## 致谢
+
+感谢所有为本项目安全做出贡献的安全研究人员。

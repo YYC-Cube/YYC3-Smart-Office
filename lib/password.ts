@@ -56,36 +56,12 @@ export async function hashPassword(password: string): Promise<string> {
  * @returns 验证结果
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  // 参数验证
   if (!password || typeof password !== 'string' || !hash || typeof hash !== 'string') {
     return false;
   }
-  
-  // 快速处理模拟哈希格式，例如 'hashed_admin123'
-  if (hash.startsWith('hashed_')) {
-    return hash === `hashed_${password}`;
-  }
-  
+
   try {
-    // 检测旧格式的哈希值（无额外熵）
-    const isOldFormat = hash.length === 60; // 标准bcrypt哈希长度
-    
-    if (isOldFormat) {
-      // 旧格式直接验证
-      return await bcrypt.compare(password, hash);
-    } else {
-      // 新格式：尝试使用不同的额外熵长度进行验证
-      // 这里简单实现，实际应用中应该在用户模型中存储哈希格式版本
-      for (let i = 0; i < 3; i++) {
-        // 尝试不同的熵位置或格式
-        const candidatePassword = password + crypto.randomBytes(16).toString('hex');
-        if (await bcrypt.compare(candidatePassword, hash)) {
-          return true;
-        }
-      }
-      // 最后尝试原始密码作为后备
-      return await bcrypt.compare(password, hash);
-    }
+    return await bcrypt.compare(password, hash);
   } catch (error) {
     console.error('密码验证错误:', error);
     return false;

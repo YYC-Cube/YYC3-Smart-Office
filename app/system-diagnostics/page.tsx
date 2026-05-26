@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CheckCircle, AlertTriangle, Info, Activity, Server, Database, Code, GitBranch } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle, Code, Database, GitBranch, Info, Server } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+
+const LazyChart = dynamic(() => import('./_chart-component'), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse bg-muted rounded" />,
+});
 
 // 系统状态类型定义
 interface SystemStatus {
@@ -207,16 +212,7 @@ export default function SystemDiagnosticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={performanceMetrics}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#3b82f6" name="当前值" />
-                  <Bar dataKey="max" fill="#e5e7eb" name="最大值" />
-                </BarChart>
-              </ResponsiveContainer>
+              <LazyChart data={performanceMetrics} />
             </div>
             <div className="mt-4 space-y-3">
               {performanceMetrics.map((metric, index) => (

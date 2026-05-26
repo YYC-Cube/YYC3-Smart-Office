@@ -1,45 +1,44 @@
 'use client';
 
-import Head from 'next/head';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import {
-  Search,
-  Upload,
-  FolderPlus,
-  Download,
-  Eye,
-  MoreHorizontal,
-  SlidersHorizontal,
-  FileText,
-  FileImage,
-  File,
-  Clock,
-  Share2,
-  Star,
-  StarOff,
-  Lock,
-  Unlock,
-  FolderTree,
-}
-from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileUploader } from '@/components/file-uploader';
+import RichTextEditor from '@/components/rich-text-editor';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileUploader } from '@/components/file-uploader';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Clock,
+  Download,
+  Eye,
+  File,
+  FileImage,
+  FileText,
+  FolderPlus,
+  FolderTree,
+  Lock,
+  MoreHorizontal,
+  Search,
+  Share2,
+  SlidersHorizontal,
+  Star,
+  StarOff,
+  Unlock,
+  Upload,
+} from 'lucide-react';
+import Head from 'next/head';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 // 定义文档类型
 interface Document {
@@ -250,6 +249,14 @@ export default function DocumentsPage() {
     category: '项目',
   });
   const [addWatermark, setAddWatermark] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [sortField, setSortField] = useState<'title' | 'size' | 'modifiedAt'>('modifiedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [breadcrumb, setBreadcrumb] = useState<Array<{ id: string | null; name: string }>>([
+    { id: null, name: '全部文档' },
+  ]);
 
   // 加载数据
   useEffect(() => {
@@ -272,19 +279,59 @@ export default function DocumentsPage() {
   // 过滤文档
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.category.toLowerCase().includes(searchQuery.toLowerCase());
+      doc.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
-    const matchesTab = activeTab === 'all' || 
-                      (activeTab === 'starred' && doc.starred) ||
-                      (activeTab === 'recent' && new Date(doc.modifiedAt) > new Date('2023-06-13'));
+    const matchesTab = activeTab === 'all' ||
+      (activeTab === 'starred' && doc.starred) ||
+      (activeTab === 'recent' && new Date(doc.modifiedAt) > new Date('2023-06-13'));
 
     return matchesSearch && matchesCategory && matchesTab;
   });
 
+  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
+    const modifier = sortOrder === 'asc' ? 1 : -1;
+    if (sortField === 'title') return a.title.localeCompare(b.title) * modifier;
+    if (sortField === 'modifiedAt') return (new Date(a.modifiedAt).getTime() - new Date(b.modifiedAt).getTime()) * modifier;
+    if (sortField === 'size') {
+      const parseSize = (s: string) => parseFloat(s);
+      return (parseSize(a.size) - parseSize(b.size)) * modifier;
+    }
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedDocuments.length / pageSize);
+  const paginatedDocuments = sortedDocuments.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handleSort = (field: 'title' | 'size' | 'modifiedAt') => {
+    if (sortField === field) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const navigateToFolder = (folderId: string | null, folderName: string) => {
+    setCurrentFolderId(folderId);
+    setBreadcrumb(prev => [...prev, { id: folderId, name: folderName }]);
+    setCurrentPage(1);
+  };
+
+  const navigateToBreadcrumb = (index: number) => {
+    const target = breadcrumb[index];
+    setCurrentFolderId(target.id);
+    setBreadcrumb(prev => prev.slice(0, index + 1));
+    setCurrentPage(1);
+  };
+
   // 切换星标状态
   const toggleStar = (id: string) => {
-    setDocuments(prev => 
-      prev.map(doc => 
+    setDocuments(prev =>
+      prev.map(doc =>
         doc.id === id ? { ...doc, starred: !doc.starred } : doc
       )
     );
@@ -396,14 +443,14 @@ export default function DocumentsPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => setIsUploadDialogOpen(true)}
                 className="flex items-center gap-2"
               >
                 <Upload size={16} />
                 <span>上传/创建</span>
               </Button>
-              <Button 
+              <Button
                 onClick={() => setIsFolderDialogOpen(true)}
                 className="flex items-center gap-2"
                 variant="secondary"
@@ -418,9 +465,9 @@ export default function DocumentsPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>按名称排序</DropdownMenuItem>
-                  <DropdownMenuItem>按日期排序</DropdownMenuItem>
-                  <DropdownMenuItem>按大小排序</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('title')}>按名称排序 {sortField === 'title' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('modifiedAt')}>按日期排序 {sortField === 'modifiedAt' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('size')}>按大小排序 {sortField === 'size' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>导出列表</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -443,7 +490,7 @@ export default function DocumentsPage() {
                 </Badge>
               ))}
             </div>
-            
+
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="all">全部文档</TabsTrigger>
@@ -451,6 +498,22 @@ export default function DocumentsPage() {
                 <TabsTrigger value="recent">最近修改</TabsTrigger>
               </TabsList>
             </Tabs>
+          </div>
+
+          {/* 面包屑导航 */}
+          <div className="flex items-center gap-1 mb-4 text-sm">
+            {breadcrumb.map((item, index) => (
+              <span key={index} className="flex items-center gap-1">
+                {index > 0 && <span className="text-gray-400">/</span>}
+                <button
+                  onClick={() => navigateToBreadcrumb(index)}
+                  className={`hover:text-blue-600 transition-colors ${index === breadcrumb.length - 1 ? 'text-gray-800 font-medium' : 'text-gray-500'
+                    }`}
+                >
+                  {item.name}
+                </button>
+              </span>
+            ))}
           </div>
 
           {/* 文件夹列表 */}
@@ -461,7 +524,7 @@ export default function DocumentsPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {folders.map((folder) => (
-                <Card key={folder.id} className="transition-all hover:shadow-md cursor-pointer">
+                <Card key={folder.id} className="transition-all hover:shadow-md cursor-pointer" onClick={() => navigateToFolder(folder.id, folder.name)}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{folder.name}</CardTitle>
@@ -505,7 +568,7 @@ export default function DocumentsPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl">文档列表</CardTitle>
               <div className="text-sm text-gray-600">
-                共 {filteredDocuments.length} 个文档
+                共 {sortedDocuments.length} 个文档 {totalPages > 1 && `(第${currentPage}/${totalPages}页)`}
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -522,7 +585,7 @@ export default function DocumentsPage() {
                     </div>
                   ))}
                 </div>
-              ) : filteredDocuments.length === 0 ? (
+              ) : sortedDocuments.length === 0 ? (
                 <div className="p-12 text-center text-gray-500">
                   <FileText className="h-16 w-16 mx-auto mb-4 opacity-20" />
                   <h3 className="text-xl font-medium mb-2">未找到文档</h3>
@@ -542,7 +605,7 @@ export default function DocumentsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDocuments.map((doc) => (
+                    {paginatedDocuments.map((doc) => (
                       <TableRow key={doc.id} className="group hover:bg-gray-50">
                         <TableCell>
                           {getDocumentIcon(doc.type)}
@@ -585,17 +648,17 @@ export default function DocumentsPage() {
                         <TableCell className="hidden xl:table-cell">{doc.modifiedAt}</TableCell>
                         <TableCell>
                           <div className="flex justify-end gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-gray-500 hover:text-blue-600"
                               onClick={() => previewDocument(doc)}
                             >
                               <Eye size={16} />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-gray-500 hover:text-green-600"
                               onClick={() => downloadDocument(doc)}
                             >
@@ -603,9 +666,9 @@ export default function DocumentsPage() {
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   className="h-8 w-8 text-gray-500 hover:text-gray-700"
                                 >
                                   <MoreHorizontal size={16} />
@@ -643,7 +706,7 @@ export default function DocumentsPage() {
                   <Input
                     id="document-title"
                     value={newDocument.title}
-                    onChange={(e) => setNewDocument({...newDocument, title: e.target.value})}
+                    onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
                     placeholder="请输入文档标题"
                   />
                 </div>
@@ -653,7 +716,7 @@ export default function DocumentsPage() {
                     id="document-category"
                     className="w-full p-2 border rounded"
                     value={newDocument.category}
-                    onChange={(e) => setNewDocument({...newDocument, category: e.target.value})}
+                    onChange={(e) => setNewDocument({ ...newDocument, category: e.target.value })}
                   >
                     {categories.filter(c => c !== 'all').map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -661,13 +724,12 @@ export default function DocumentsPage() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="document-content">文档内容（可选）</Label>
-                  <Textarea
-                    id="document-content"
-                    value={newDocument.content}
-                    onChange={(e) => setNewDocument({...newDocument, content: e.target.value})}
-                    placeholder="请输入文档内容"
-                    rows={5}
+                  <Label>文档内容</Label>
+                  <RichTextEditor
+                    initialContent={newDocument.content}
+                    onChange={(html) => setNewDocument({ ...newDocument, content: html })}
+                    placeholder="请输入文档内容..."
+                    minHeight={200}
                   />
                 </div>
                 <div>
@@ -782,13 +844,13 @@ export default function DocumentsPage() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white border rounded-lg p-6 min-h-[400px]">
                     {currentDocument.type === 'image' ? (
                       <div className="flex justify-center">
-                        <Image 
-                          src={currentDocument.previewUrl || '/placeholder.svg'} 
-                          alt={currentDocument.title} 
+                        <Image
+                          src={currentDocument.previewUrl || '/placeholder.svg'}
+                          alt={currentDocument.title}
                           className="max-h-[500px] max-w-full object-contain"
                           width={1200}
                           height={800}
@@ -822,6 +884,38 @@ export default function DocumentsPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* 分页控件 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              上一页
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <Button
+                key={page}
+                variant={page === currentPage ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              下一页
+            </Button>
+          </div>
+        )}
 
         {/* 上传/下载进度指示器 */}
         {fileUploadProgress > 0 && fileUploadProgress < 100 && (

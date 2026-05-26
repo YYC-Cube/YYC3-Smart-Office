@@ -24,8 +24,7 @@ describe('Logo', () => {
     const logoElement = screen.getByAltText('YYC Smart Office Logo');
     expect(logoElement).toBeInTheDocument();
     
-    // 检查图片路径是否包含logo.png
-    expect(logoElement).toHaveAttribute('src', expect.stringContaining('logo.png'));
+    expect(logoElement).toHaveAttribute('src', expect.stringContaining('yyc3-icons'));
     
     // 检查默认大小类名
     expect(logoElement).toHaveClass('h-10');

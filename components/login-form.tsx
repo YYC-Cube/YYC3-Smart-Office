@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 // import { useAuth } from '@/contexts/auth-context'; // 未使用的导入
 
 export default function LoginForm() {
@@ -18,7 +18,27 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCaptcha, setGeneratedCaptcha] = useState('');
-  
+  const [csrfToken, setCsrfToken] = useState('');
+
+  const fetchCsrfToken = async () => {
+    try {
+      const res = await fetch('/api/auth/csrf-token', { credentials: 'include' });
+      if (res.ok) {
+        const cookieStr = document.cookie || '';
+        const match = cookieStr.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        if (match && match[1]) {
+          const token = decodeURIComponent(match[1]);
+          setCsrfToken(token);
+          return token;
+        }
+      }
+    } catch { }
+    return '';
+  };
+
+  useEffect(() => {
+    fetchCsrfToken();
+  }, []);
   // 生成随机验证码
   const generateCaptcha = () => {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -29,7 +49,7 @@ export default function LoginForm() {
     setGeneratedCaptcha(newCaptcha);
     sessionStorage.setItem('captcha', newCaptcha);
   };
-  
+
   // 初始化生成验证码
   useEffect(() => {
     generateCaptcha();
@@ -39,7 +59,7 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       // 模拟验证码验证
       const storedCaptcha = sessionStorage.getItem('captcha');
@@ -48,7 +68,7 @@ export default function LoginForm() {
         generateCaptcha();
         return;
       }
-      
+
       // 模拟登录请求
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -60,12 +80,12 @@ export default function LoginForm() {
           password,
           captcha,
           generatedCaptcha,
-          csrfToken: 'mock-csrf-token',
+          csrfToken: csrfToken,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         // 登录成功，跳转到首页
         sessionStorage.removeItem('captcha');
@@ -76,25 +96,9 @@ export default function LoginForm() {
         generateCaptcha();
       }
     } catch {
-        // 如果API调用失败，使用模拟数据直接登录（适用于开发环境）
-        if (username === 'admin' && password === 'admin123') {
-          // 模拟成功登录
-          sessionStorage.setItem('mock_user', JSON.stringify({
-            id: '1',
-            username: 'admin',
-            role: 'admin',
-            name: '系统管理员',
-            email: 'admin@example.com',
-            isActive: true,
-            permissions: ['all'],
-          }));
-          sessionStorage.removeItem('captcha');
-          router.push('/');
-        } else {
-          setError('登录失败，请使用用户名: admin, 密码: admin123');
-          generateCaptcha();
-        }
-      } finally {
+      setError('登录失败，请检查网络连接后重试');
+      generateCaptcha();
+    } finally {
       setIsLoading(false);
     }
   };
@@ -147,10 +151,10 @@ export default function LoginForm() {
                   className="flex-1"
                   maxLength={4}
                 />
-                <div 
+                <div
                   className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-lg font-bold cursor-pointer"
                   onClick={generateCaptcha}
-                  style={{ 
+                  style={{
                     background: 'linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%, #e0e0e0 100%)',
                     backgroundSize: '10px 10px'
                   }}
@@ -164,8 +168,8 @@ export default function LoginForm() {
             )}
           </div>
           <div className="mt-6">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={isLoading}
             >

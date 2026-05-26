@@ -14,7 +14,7 @@ const verifyEnvHandler = async () => {
     return createApiResponse(
       {
         environment: env.NODE_ENV,
-        jwt_secret_set: env.JWT_SECRET !== 'fallback-secret-key-for-development-only',
+        jwt_secret_set: !!env.JWT_SECRET && env.JWT_SECRET.length >= 32,
       },
       { status: 200, message: '环境变量验证成功' }
     );

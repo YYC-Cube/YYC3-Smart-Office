@@ -1,8 +1,7 @@
+import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { env } from './env';
-import { randomBytes } from 'crypto';
 
-// 用户令牌载荷接口
 export interface TokenPayload {
   id: string;
   username: string;
@@ -13,26 +12,27 @@ export interface TokenPayload {
   exp: number;
 }
 
-// 生成JWT令牌
+function getJwtSecret(): string {
+  if (!env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured. Set it in your environment variables.');
+  }
+  return env.JWT_SECRET;
+}
+
 export function generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, expiresIn: string = '24h') {
-  const jwtSecret = env.JWT_SECRET || 'fallback-secret-key-for-development-only';
-  
-  // 使用类型断言来解决jsonwebtoken库的类型兼容性问题
-  // 这是一种安全的方式，因为我们知道字符串类型的expiresIn是库支持的
+  const jwtSecret = getJwtSecret();
   const options = { expiresIn };
   return jwt.sign(payload, jwtSecret, options as jwt.SignOptions);
 }
 
-// 验证JWT令牌
 export function verifyToken(token: string): TokenPayload {
-  const jwtSecret = env.JWT_SECRET || 'fallback-secret-key-for-development-only';
-  
+  const jwtSecret = getJwtSecret();
+
   try {
     const decoded = jwt.verify(token, jwtSecret) as TokenPayload;
     return decoded;
   } catch (error) {
     if (error instanceof Error) {
-      // 增强错误信息，便于前端处理
       if (error.name === 'TokenExpiredError') {
         throw new Error('Token expired');
       } else if (error.name === 'JsonWebTokenError') {
@@ -44,13 +44,11 @@ export function verifyToken(token: string): TokenPayload {
   }
 }
 
-// 刷新JWT令牌
 export function refreshToken(oldToken: string) {
   try {
-    // 忽略过期检查，强制验证令牌
-    const jwtSecret = env.JWT_SECRET || 'fallback-secret-key-for-development-only';
+    const jwtSecret = getJwtSecret();
     const decoded = jwt.verify(oldToken, jwtSecret, { ignoreExpiration: true }) as TokenPayload;
-    
+
     // 创建新的令牌，保留原始信息但更新过期时间
     const newToken = generateToken({
       id: decoded.id,
@@ -59,7 +57,7 @@ export function refreshToken(oldToken: string) {
       role: decoded.role,
       isActive: decoded.isActive,
     });
-    
+
     return newToken;
   } catch (error) {
     console.error('刷新令牌失败:', error);
@@ -69,13 +67,13 @@ export function refreshToken(oldToken: string) {
 
 // 验证用户凭据（在实际应用中，这里应该查询数据库验证用户名和密码）
 export async function validateCredentials(
-  username: string, 
+  username: string,
   // eslint-disable-next-line no-unused-vars
   _password: string
 ) {
   // 注意：这是一个模拟实现
   // 实际应用中，应该从数据库中查询用户并验证密码哈希
-  
+
   // 模拟用户数据
   const mockUsers = [
     {
@@ -95,25 +93,25 @@ export async function validateCredentials(
       isActive: true,
     },
   ];
-  
+
   // 查找用户
   const user = mockUsers.find(u => u.username === username);
-  
+
   if (!user || !user.isActive) {
     return null;
   }
-  
+
   // 在实际应用中，应该使用bcrypt.compare来验证密码
   // 这里为了简化，我们假设密码是正确的
   // const passwordMatch = await bcrypt.compare(password, user.password);
-  
+
   // 由于这是模拟实现，我们假设密码验证总是成功
   const passwordMatch = true;
-  
+
   if (!passwordMatch) {
     return null;
   }
-  
+
   return {
     id: user.id,
     username: user.username,
@@ -130,12 +128,12 @@ export function getTokenFromRequest(request: { headers?: { authorization?: strin
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
-  
+
   // 尝试从cookie中获取
   if (request.cookies && request.cookies.auth_token) {
     return request.cookies.auth_token;
   }
-  
+
   return null;
 }
 

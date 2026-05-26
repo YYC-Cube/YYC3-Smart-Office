@@ -1,22 +1,86 @@
-import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { NextResponse } from 'next/server';
 
-// 增强的CSRF令牌存储结构，绑定到会话ID
 interface CsrfTokenInfo {
   token: string;
-  sessionId: string; // 绑定到会话ID
-  ipHash: string;    // 绑定到IP地址的哈希值
-  userAgentHash: string; // 绑定到用户代理的哈希值
+  sessionId: string;
+  ipHash: string;
+  userAgentHash: string;
   createdAt: number;
   expires: number;
   lastUsed?: number;
   useCount: number;
 }
 
-// CSRF令牌存储（实际应用中应使用Redis等分布式存储）
-const csrfTokens = new Map<string, CsrfTokenInfo>();
-const CSRF_TOKEN_EXPIRY = 30 * 60 * 1000; // 30分钟过期
-const MAX_TOKEN_USES = 100; // 单个令牌最大使用次数
+interface CsrfStore {
+  get(key: string): Promise<CsrfTokenInfo | undefined>;
+  set(key: string, value: CsrfTokenInfo, ttlMs: number): Promise<void>;
+  delete(key: string): Promise<void>;
+}
+
+class MemoryCsrfStore implements CsrfStore {
+  private store = new Map<string, CsrfTokenInfo>();
+  async get(key: string) { return this.store.get(key); }
+  async set(key: string, value: CsrfTokenInfo, _ttlMs: number) { this.store.set(key, value); }
+  async delete(key: string) { this.store.delete(key); }
+  get size() { return this.store.size; }
+  entries() { return this.store.entries(); }
+}
+
+class RedisCsrfStore implements CsrfStore {
+  private redis: import('@upstash/redis').Redis | null = null;
+  private initPromise: Promise<void>;
+
+  constructor() {
+    this.initPromise = this.init();
+  }
+
+  private async init() {
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const url = process.env.UPSTASH_REDIS_REST_URL;
+      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+      if (url && token) {
+        this.redis = new Redis({ url, token });
+      }
+    } catch {
+      this.redis = null;
+    }
+  }
+
+  private async ensureInit() { await this.initPromise; }
+
+  async get(key: string): Promise<CsrfTokenInfo | undefined> {
+    await this.ensureInit();
+    if (!this.redis) return undefined;
+    const data = await this.redis.get<CsrfTokenInfo>(`csrf:${key}`);
+    return data ?? undefined;
+  }
+
+  async set(key: string, value: CsrfTokenInfo, ttlMs: number): Promise<void> {
+    await this.ensureInit();
+    if (!this.redis) return;
+    await this.redis.set(`csrf:${key}`, JSON.stringify(value), { px: ttlMs });
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.ensureInit();
+    if (!this.redis) return;
+    await this.redis.del(`csrf:${key}`);
+  }
+}
+
+function createStore(): MemoryCsrfStore | RedisCsrfStore {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return new RedisCsrfStore();
+  }
+  return new MemoryCsrfStore();
+}
+
+const csrfStore = createStore();
+const memoryStore = csrfStore instanceof MemoryCsrfStore ? csrfStore : null;
+const CSRF_TOKEN_EXPIRY = 30 * 60 * 1000;
+const MAX_TOKEN_USES = 100;
 
 /**
  * 生成安全哈希值
@@ -41,10 +105,10 @@ export async function generateCsrfToken(
 ): Promise<string> {
   // 生成更安全的CSRF令牌（64字节而不是32字节）
   const token = crypto.randomBytes(64).toString('hex');
-  
+
   // 存储令牌信息，绑定到会话、IP和用户代理
   const now = Date.now();
-  csrfTokens.set(token, {
+  await csrfStore.set(token, {
     token,
     sessionId,
     ipHash: generateHash(ipAddress),
@@ -52,11 +116,10 @@ export async function generateCsrfToken(
     createdAt: now,
     expires: now + CSRF_TOKEN_EXPIRY,
     useCount: 0
-  });
-  
-  // 清理过期的令牌
+  }, CSRF_TOKEN_EXPIRY);
+
   cleanupExpiredTokens();
-  
+
   return token;
 }
 
@@ -77,70 +140,62 @@ export async function validateCsrfToken(
   if (!token || typeof token !== 'string' || token.length < 32) {
     return false;
   }
-  
-  // 获取存储的令牌信息
-  const storedToken = csrfTokens.get(token);
-  
-  // 检查令牌是否存在
+
+  const storedToken = await csrfStore.get(token);
+
   if (!storedToken) {
     return false;
   }
-  
-  // 检查令牌是否过期
+
   if (storedToken.expires < Date.now()) {
-    // 如果令牌已过期，从存储中删除
-    csrfTokens.delete(token);
+    await csrfStore.delete(token);
     return false;
   }
-  
-  // 检查令牌使用次数是否超过限制
+
   if (storedToken.useCount >= MAX_TOKEN_USES) {
-    csrfTokens.delete(token);
+    await csrfStore.delete(token);
     return false;
   }
-  
+
   // 如果提供了会话ID，验证绑定关系
   if (sessionId && storedToken.sessionId !== sessionId) {
     return false;
   }
-  
+
   // 如果提供了IP地址，验证绑定关系
   if (ipAddress && storedToken.ipHash !== generateHash(ipAddress)) {
     return false;
   }
-  
+
   // 如果提供了用户代理，验证绑定关系
   if (userAgent && storedToken.userAgentHash !== generateHash(userAgent)) {
     return false;
   }
-  
+
   // 更新令牌使用信息
   storedToken.lastUsed = Date.now();
   storedToken.useCount++;
-  
-  // 刷新令牌过期时间（滑动窗口）
+
   storedToken.expires = Date.now() + CSRF_TOKEN_EXPIRY;
-  
+  await csrfStore.set(token, storedToken, CSRF_TOKEN_EXPIRY);
+
   return true;
 }
 
-/**
- * 清理过期的CSRF令牌
- */
 function cleanupExpiredTokens(): void {
+  if (!memoryStore) return;
   const now = Date.now();
   let deletedCount = 0;
-  
-  for (const [token, info] of csrfTokens.entries()) {
+
+  for (const [token, info] of memoryStore.entries()) {
     if (info.expires < now || info.useCount >= MAX_TOKEN_USES) {
-      csrfTokens.delete(token);
+      memoryStore.delete(token);
       deletedCount++;
     }
   }
-  
-  // 如果删除了大量令牌或令牌数量过多，记录日志
-  if (deletedCount > 10 || csrfTokens.size > 1000) {
-    console.log(`CSRF令牌清理: 删除了 ${deletedCount} 个过期令牌，当前剩余 ${csrfTokens.size} 个令牌`);
+
+  if (deletedCount > 10 || memoryStore.size > 1000) {
+    console.log(`CSRF令牌清理: 删除了 ${deletedCount} 个过期令牌，当前剩余 ${memoryStore.size} 个令牌`);
   }
 }
 
@@ -157,7 +212,7 @@ function getSessionIdFromRequest(request: { cookies: { get?: (name: string) => {
       return sessionCookie.value;
     }
   }
-  
+
   // 如果没有会话ID，生成临时ID
   return crypto.randomBytes(16).toString('hex');
 }
@@ -223,25 +278,25 @@ export function extractCsrfToken(request: { headers: Headers; cookies: { get?: (
   if (!request || !request.headers) {
     return null;
   }
-  
+
   // 首先从标准的CSRF头中获取
   const headerToken = request.headers.get('X-XSRF-TOKEN');
   if (headerToken && typeof headerToken === 'string' && headerToken.trim()) {
     return headerToken.trim();
   }
-  
+
   // 然后尝试从自定义头中获取
   const customHeaderToken = request.headers.get('X-CSRF-TOKEN');
   if (customHeaderToken && typeof customHeaderToken === 'string' && customHeaderToken.trim()) {
     return customHeaderToken.trim();
   }
-  
+
   // 从Next.js的自定义头中获取
   const nextHeaderToken = request.headers.get('next-action-csrf');
   if (nextHeaderToken && typeof nextHeaderToken === 'string' && nextHeaderToken.trim()) {
     return nextHeaderToken.trim();
   }
-  
+
   // 最后尝试从cookie中获取
   if (request.cookies && request.cookies.get) {
     const cookieToken = request.cookies.get('XSRF-TOKEN')?.value;
@@ -249,7 +304,7 @@ export function extractCsrfToken(request: { headers: Headers; cookies: { get?: (
       return cookieToken.trim();
     }
   }
-  
+
   return null;
 }
 
@@ -262,17 +317,17 @@ export async function validateRequestCsrfToken(request: { headers: Headers; cook
   try {
     // 提取请求中的CSRF令牌
     const requestToken = extractCsrfToken(request);
-    
+
     if (!requestToken) {
       return false;
     }
-    
+
     // 获取请求的会话信息用于验证
     const sessionId = getSessionIdFromRequest(request);
-    
+
     let ipAddress = 'unknown';
     let userAgent = 'unknown';
-    
+
     if (request && request.headers) {
       // 从请求中获取IP地址
       const forwardedFor = request.headers.get('X-Forwarded-For');
@@ -281,11 +336,11 @@ export async function validateRequestCsrfToken(request: { headers: Headers; cook
       } else {
         ipAddress = request.headers.get('x-real-ip') || ipAddress;
       }
-      
+
       // 从请求中获取用户代理
       userAgent = request.headers.get('User-Agent') || userAgent;
     }
-    
+
     // 使用会话信息验证令牌（标准路径）
     const valid = await validateCsrfToken(requestToken, sessionId, ipAddress, userAgent);
     if (valid) {
@@ -302,7 +357,7 @@ export async function validateRequestCsrfToken(request: { headers: Headers; cook
         return true;
       }
     }
-    
+
     return false;
   } catch (error) {
     console.error('CSRF令牌验证错误:', error);
@@ -326,9 +381,9 @@ export async function rotateCsrfToken(
 ): Promise<string> {
   // 删除旧令牌
   if (oldToken) {
-    csrfTokens.delete(oldToken);
+    await csrfStore.delete(oldToken);
   }
-  
+
   // 生成新令牌
   return await generateCsrfToken(sessionId, ipAddress || 'unknown', userAgent || 'unknown');
 }

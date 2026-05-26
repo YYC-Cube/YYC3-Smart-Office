@@ -1,10 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
-// 临时开发标志：跳过本地验证码校验
-const DEV_SKIP_CAPTCHA = true;
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 type User = {
   id: string;
@@ -74,16 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 首先检查模拟用户数据（开发环境）
-      const mockUserStr = sessionStorage.getItem('mock_user');
-      if (mockUserStr) {
-        const mockUser = JSON.parse(mockUserStr);
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
-
       const response = await fetch('/api/auth/status', {
         method: 'GET',
         credentials: 'include',
@@ -107,16 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('检查认证状态失败:', error);
-      // 在API调用失败的情况下，再次检查模拟用户数据
-      const mockUserStr = sessionStorage.getItem('mock_user');
-      if (mockUserStr) {
-        const mockUser = JSON.parse(mockUserStr);
-        setUser(mockUser);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
@@ -165,9 +146,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // 验证验证码（临时跳过本地校验以排除因素）
       const storedCaptcha = sessionStorage.getItem('captcha');
-      const effectiveCaptcha = DEV_SKIP_CAPTCHA ? (storedCaptcha || captcha) : captcha;
+      const effectiveCaptcha = IS_DEV ? (storedCaptcha || captcha) : captcha;
 
-      if (!DEV_SKIP_CAPTCHA) {
+      if (!IS_DEV) {
         if (!storedCaptcha || captcha.toLowerCase() !== storedCaptcha.toLowerCase()) {
           return { success: false, message: '验证码错误' };
         }
@@ -191,57 +172,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
-        // 清除验证码
         sessionStorage.removeItem('captcha');
         await checkAuthStatus();
         return { success: true };
       } else {
-        // 如果API调用失败，尝试模拟登录（开发环境）
-        if (username === 'admin' && password === 'admin123') {
-          const mockUser = {
-            id: '1',
-            username: 'admin',
-            role: 'admin',
-            name: '系统管理员',
-            email: 'admin@example.com',
-            isActive: true,
-            permissions: ['all'],
-          };
-          
-          sessionStorage.setItem('mock_user', JSON.stringify(mockUser));
-          setUser(mockUser);
-          setIsAuthenticated(true);
-          sessionStorage.removeItem('captcha');
-          return { success: true };
-        }
-        
-        // 生成新的验证码
         generateCaptcha();
         return { success: false, message: data.message || '登录失败' };
       }
     } catch (error) {
       console.error('登录错误:', error);
-      // 网络错误情况下，也尝试模拟登录
-      if (username === 'admin' && password === 'admin123') {
-        const mockUser = {
-          id: '1',
-          username: 'admin',
-          role: 'admin',
-          name: '系统管理员',
-          email: 'admin@example.com',
-          isActive: true,
-          permissions: ['all'],
-        };
-        
-        sessionStorage.setItem('mock_user', JSON.stringify(mockUser));
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        sessionStorage.removeItem('captcha');
-        return { success: true };
-      }
-      
       return { success: false, message: '登录过程中发生错误' };
     }
   };
@@ -258,23 +199,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      // 清除状态
       setUser(null);
       setIsAuthenticated(false);
-
-      // 移除模拟用户数据（如果存在）
-      sessionStorage.removeItem('mock_user');
-
-      // 清除可能的客户端缓存或状态
       sessionStorage.removeItem('captcha');
-
-      // 可选：重定向到登录页
       router.push('/login');
     } catch (error) {
       console.error('登出错误:', error);
       setUser(null);
       setIsAuthenticated(false);
-      sessionStorage.removeItem('mock_user');
       sessionStorage.removeItem('captcha');
       router.push('/login');
     }

@@ -1,35 +1,27 @@
 'use client';
 
-import type React from 'react';
 import Head from 'next/head';
+import type React from 'react';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import RegisterForm from '@/components/register-form';
-import ForgotPasswordForm from '@/components/forgot-password-form';
-import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/auth-context';
+import { loginSchema } from '@/lib/validations';
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 
 // 临时开发标志：在登录前自动使用右侧验证码
@@ -37,9 +29,8 @@ const DEV_AUTO_FILL_CAPTCHA = true;
 
 // Logo占位组件，替换已删除的Logo组件
 function LogoPlaceholder() {
-  return <div className="h-10 w-20 bg-blue-500/20 rounded-md"></div>; // 临时占位
+  return <img src="/yyc3-icons/pwa/icon-192x192.png" alt="YYC³" className="h-10 w-10 rounded-md" />;
 }
-import { loginSchema } from '@/lib/validations';
 // 移除不存在的Logo组件导入
 
 export default function LoginPage() {
@@ -57,6 +48,13 @@ export default function LoginPage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [showRegister, setShowRegister] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  const bgImages = [
+    '/bg-login/bg-login-001.jpg',
+    '/bg-login/bg-login-002.jpg',
+    '/bg-login/bg-login-003.jpg',
+  ];
+  const [bgImage] = useState(bgImages[Math.floor(Math.random() * bgImages.length)]);
 
   // 初始化时生成验证码（并在开发模式自动填充输入框）
   useEffect(() => {
@@ -153,7 +151,14 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen animated-gradient-bg">
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${bgImage}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="glass-card p-8 rounded-2xl">
           <div className="flex flex-col items-center">
             <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-blue-500 to purple-600 flex items-center justify-center mb-4">
@@ -168,7 +173,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden animated-gradient-bg">
+    <div
+      className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${bgImage}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <Head>
         <title>登录 - 智能办公经管系统</title>
       </Head>

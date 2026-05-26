@@ -66,7 +66,7 @@ export function LogoLoading({
       <div className="relative">
         <div className="logo-pulse overflow-hidden rounded-lg">
           <Image
-            src="/logo.png"
+            src="/yyc3-icons/pwa/icon-192x192.png"
             alt="智能办公系统"
             width={width}
             height={height}

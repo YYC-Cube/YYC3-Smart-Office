@@ -144,7 +144,7 @@ export default function Logo({
         onClick={handleClick}
       >
         <Image
-          src="/logo.png"
+          src="/yyc3-icons/pwa/icon-192x192.png"
           alt={alt}
           width={logoWidth}
           height={logoHeight}

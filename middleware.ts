@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 // 移除 Node-only 依赖，避免在 Edge Runtime 打包 jsonwebtoken 与 Node crypto
 // import { verifyToken } from './lib/auth';
 // import { validateCsrfToken } from './lib/csrf';
@@ -35,10 +34,10 @@ function isPublicPath(path: string): boolean {
   if (publicPaths.includes(path)) {
     return true;
   }
-  
+
   // 检查路径前缀
-  return publicPaths.some(publicPath => 
-    publicPath !== '/' && path.startsWith(`${publicPath}/`) 
+  return publicPaths.some(publicPath =>
+    publicPath !== '/' && path.startsWith(`${publicPath}/`)
   );
 }
 
@@ -61,13 +60,13 @@ function getAuthToken(request: NextRequest): string | null {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
-  
+
   // 从cookie获取令牌
   const token = request.cookies.get('auth_token')?.value;
   if (token) {
     return token;
   }
-  
+
   return null;
 }
 
@@ -85,7 +84,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Content-Security-Policy', csp);
-  
+
   return response;
 }
 
@@ -107,34 +106,42 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/_next/') ||
     path === '/favicon.ico' ||
     path.startsWith('/images/') ||
-    path.startsWith('/fonts/')
+    path.startsWith('/fonts/') ||
+    path.startsWith('/yyc3-icons/') ||
+    path.startsWith('/bg-login/') ||
+    path.startsWith('/static/') ||
+    path.startsWith('/customer-') ||
+    path.startsWith('/team-') ||
+    path.startsWith('/innovation-') ||
+    path.startsWith('/environmental-') ||
+    path.startsWith('/placeholder')
   ) {
     return addSecurityHeaders(NextResponse.next());
   }
-  
+
   // 为所有响应添加安全头
   let response = NextResponse.next();
   response = addSecurityHeaders(response);
-  
+
   // 跳过公开路径的认证检查
   if (isPublicPath(path)) {
     return response;
   }
-  
+
   try {
     // 获取令牌
     const token = getAuthToken(request);
-    
+
     if (!token) {
       // 未认证，重定向到登录页面
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', path);
       return NextResponse.redirect(loginUrl);
     }
-    
+
     // 解析令牌载荷（Edge 兼容）。真正的签名校验放在 Node 运行时的 API 路由。
     const payload: any = unsafeDecodeJwt(token);
-    
+
     // 检查令牌是否过期
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp < now) {
@@ -145,14 +152,14 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('reason', 'expired');
       return NextResponse.redirect(loginUrl);
     }
-    
+
     // 检查令牌是否即将过期（5分钟内）
     const refreshThreshold = now + 300; // 5分钟
     if (payload.exp < refreshThreshold) {
       // 设置标志，通知前端刷新令牌
       response.headers.set('X-Token-Refresh-Required', 'true');
     }
-    
+
     // 验证用户是否处于活动状态（仅基于载荷）
     if (payload.isActive === false) {
       response.cookies.delete('auth_token');
@@ -160,7 +167,7 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('reason', 'account_disabled');
       return NextResponse.redirect(loginUrl);
     }
-    
+
     // CSRF 基础检查（Edge 兼容）：仅检查存在与长度，真正验证在 Node API 路由执行
     if (request.method !== 'GET' && isCsrfProtectedPath(path)) {
       const csrfToken = request.headers.get('X-CSRF-Token') || request.cookies.get('XSRF-TOKEN')?.value;
@@ -175,25 +182,25 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
     }
-    
+
     // 不再修改请求对象，避免 Next 对静态资源的路由解析受到影响
     // 为响应设置缓存控制头，防止敏感页面被缓存
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
-    
+
     return response;
-    
+
   } catch (error) {
     console.error('认证中间件错误:', error);
-    
+
     // 清除无效的令牌
     response.cookies.delete('auth_token');
-    
+
     // 认证失败，重定向到登录页面
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
-    
+
     // 根据错误类型提供更具体的重定向信息
     if (error instanceof Error) {
       if (error.message.includes('expired')) {
@@ -204,14 +211,14 @@ export async function middleware(request: NextRequest) {
         loginUrl.searchParams.set('reason', 'error');
       }
     }
-    
+
     return NextResponse.redirect(loginUrl);
   }
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|_next/|favicon.ico|images|fonts).*)',
+    '/((?!_next/static|_next/image|_next/|favicon\\.ico|images/|fonts/|yyc3-icons/|bg-login/|static/|placeholder).*)',
   ],
   // middleware 运行时固定为 Edge，但保留字段以便后续迁移说明
   runtime: 'experimental-edge',

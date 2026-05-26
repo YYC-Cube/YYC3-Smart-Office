@@ -33,21 +33,24 @@ export const metadata: Metadata = {
     siteName: 'YYC³ Smart-Office',
     title: 'YYC³ Smart-Office 智能办公系统',
     description: '基于「五高五标五化五维」核心架构的企业级智能办公平台',
-    images: [{ url: '/yyc3-Family.png', width: 1200, height: 630, alt: 'YYC³' }],
+    images: [{ url: '/yyc3-icons/pwa/icon-512x512.png', width: 512, height: 512, alt: 'YYC³' }],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'YYC³ Smart-Office',
-    images: ['/yyc3-Family.png'],
+    images: ['/yyc3-icons/pwa/icon-512x512.png'],
   },
   icons: {
     icon: [
-      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/yyc3-icons/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/yyc3-icons/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/yyc3-icons/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
     ],
-    shortcut: '/favicon.ico',
-    apple: [{ url: '/apple-touch-icon.png', sizes: '192x192', type: 'image/png' }],
+    shortcut: '/yyc3-icons/favicon/favicon.ico',
+    apple: [
+      { url: '/yyc3-icons/ios/icon-1024.png', sizes: '1024x1024', type: 'image/png' },
+      { url: '/yyc3-icons/ios/icon-180.png' },
+    ],
   },
   manifest: '/yyc3-icons/pwa/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'YYC³ 智能办公' },
@@ -57,9 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/yyc3-icons/favicon/favicon.ico" sizes="any" />
         <link rel="icon" href="/yyc3-icons/favicon/favicon-96x96.png" type="image/png" sizes="96x96" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/yyc3-icons/ios/icon-1024.png" />
         <link rel="manifest" href="/yyc3-icons/pwa/manifest.json" />
       </head>
       <body className={`${inter.className} bg-slate-50 min-h-screen`}>

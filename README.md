@@ -1,7 +1,7 @@
 # YYC 智能办公系统
 
 <div align="center">
-  <img src="/public/logo.png" alt="YYC智能办公系统" width="200" height="100">
+  <img src="public/yyc3-Family.png" alt="YYC³ 智能办公系统" width="800">
   <p>高效、智能、协同的企业办公解决方案</p>
 </div>
 
@@ -193,20 +193,20 @@ git clone https://github.com/YYC-Cube/yyc3-smart-office.git
 cd yyc3-smart-office
 ```
 
-2. 安装依赖
+1. 安装依赖
 
 ```bash
 npm install
 ```
 
-3. 配置环境变量
+1. 配置环境变量
 
 ```bash
 cp .env.example .env
 # 编辑.env文件，填入数据库连接信息等
 ```
 
-4. 启动开发服务器
+1. 启动开发服务器
 
 ```bash
 npm run dev
@@ -248,8 +248,8 @@ npm start
 
 如有任何问题或建议，请联系：
 
-- **邮箱**：admin@0379.email
-- **GitHub**：https://github.com/YYC-Cube/yyc3-smart-office.git
+- **邮箱**：<admin@0379.email>
+- **GitHub**：<https://github.com/YYC-Cube/yyc3-smart-office.git>
 
 ## 📜 许可证
 

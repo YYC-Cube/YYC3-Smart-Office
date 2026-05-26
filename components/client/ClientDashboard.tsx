@@ -1,43 +1,42 @@
 'use client';
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { X, Menu, Bell } from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/auth-context';
+import {
+  BarChart2,
+  Bell,
+  Bot,
+  Briefcase,
+  Calendar,
+  ChevronDown,
+  Clock,
+  DollarSign,
+  FileCheck2,
+  FileText,
+  GitMerge,
+  HelpCircle,
+  Home,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Package,
+  Palette,
+  Search,
+  Settings,
+  User,
+  UserCheck,
+  Users,
+  X,
+} from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 
-// 延迟加载图标组件，减少初始加载时间
-const IconComponents = {
-  Home: lazy(() => import('lucide-react').then((module) => ({ default: module.Home }))),
-  FileText: lazy(() => import('lucide-react').then((module) => ({ default: module.FileText }))),
-  Calendar: lazy(() => import('lucide-react').then((module) => ({ default: module.Calendar }))),
-  Users: lazy(() => import('lucide-react').then((module) => ({ default: module.Users }))),
-  GitMerge: lazy(() => import('lucide-react').then((module) => ({ default: module.GitMerge }))),
-  Briefcase: lazy(() => import('lucide-react').then((module) => ({ default: module.Briefcase }))),
-  FileCheck2: lazy(() => import('lucide-react').then((module) => ({ default: module.FileCheck2 }))),
-  Clock: lazy(() => import('lucide-react').then((module) => ({ default: module.Clock }))),
-  BarChart2: lazy(() => import('lucide-react').then((module) => ({ default: module.BarChart2 }))),
-  UserCheck: lazy(() => import('lucide-react').then((module) => ({ default: module.UserCheck }))),
-  Palette: lazy(() => import('lucide-react').then((module) => ({ default: module.Palette }))),
-  MessageSquare: lazy(() => import('lucide-react').then((module) => ({ default: module.MessageSquare }))),
-  Bot: lazy(() => import('lucide-react').then((module) => ({ default: module.Bot }))),
-  Tool: lazy(() => import('lucide-react').then((module) => ({ default: module.HelpCircle }))),
-  DollarSign: lazy(() => import('lucide-react').then((module) => ({ default: module.DollarSign }))),
-  Package: lazy(() => import('lucide-react').then((module) => ({ default: module.Package }))),
-  Settings: lazy(() => import('lucide-react').then((module) => ({ default: module.Settings }))),
-  ChevronDown: lazy(() => import('lucide-react').then((module) => ({ default: module.ChevronDown }))),
-  LogOut: lazy(() => import('lucide-react').then((module) => ({ default: module.LogOut }))),
-  User: lazy(() => import('lucide-react').then((module) => ({ default: module.User }))),
-  Search: lazy(() => import('lucide-react').then((module) => ({ default: module.Search }))),
-};
-
-// 延迟加载的组件
 const HonorsShowcase = lazy(() => import('@/components/honors-showcase').then((module) => ({ default: module.HonorsShowcase })));
 
 // 项目状态类型定义
@@ -260,7 +259,7 @@ export default function ClientDashboard() {
             {isSidebarOpen && (
               <div className="relative mb-4">
                 <Suspense fallback={<div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-slate-600 rounded" />}>
-                  <IconComponents.Search
+                  <Search
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
                     size={16}
                   />
@@ -280,19 +279,19 @@ export default function ClientDashboard() {
               )}
               <nav className="space-y-1">
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Home} label="首页" href="/" />
+                  <LazyNavItem icon={Home} label="首页" href="/" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.FileText} label="文档管理" href="/documents" />
+                  <LazyNavItem icon={FileText} label="文档管理" href="/documents" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Calendar} label="日程安排" href="/calendar" />
+                  <LazyNavItem icon={Calendar} label="日程安排" href="/calendar" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Users} label="员工管理" href="/employee" />
+                  <LazyNavItem icon={Users} label="员工管理" href="/employee" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.GitMerge} label="组织架构" href="/organization" />
+                  <LazyNavItem icon={GitMerge} label="组织架构" href="/organization" />
                 </Suspense>
               </nav>
             </div>
@@ -303,19 +302,19 @@ export default function ClientDashboard() {
               )}
               <nav className="space-y-1">
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Briefcase} label="岗位设置" href="/position-settings" />
+                  <LazyNavItem icon={Briefcase} label="岗位设置" href="/position-settings" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.FileCheck2} label="OA审批" href="/approval" />
+                  <LazyNavItem icon={FileCheck2} label="OA审批" href="/approval" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Clock} label="时间节点" href="/timeline" />
+                  <LazyNavItem icon={Clock} label="时间节点" href="/timeline" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.BarChart2} label="落地情况" href="/progress" />
+                  <LazyNavItem icon={BarChart2} label="落地情况" href="/progress" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.UserCheck} label="客户回访" href="/customer-followup" />
+                  <LazyNavItem icon={UserCheck} label="客户回访" href="/customer-followup" />
                 </Suspense>
               </nav>
             </div>
@@ -326,16 +325,16 @@ export default function ClientDashboard() {
               )}
               <nav className="space-y-1">
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Palette} label="推广设计" href="/design-tools" />
+                  <LazyNavItem icon={Palette} label="推广设计" href="/design-tools" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.MessageSquare} label="信息中心" href="/message-center" />
+                  <LazyNavItem icon={MessageSquare} label="信息中心" href="/message-center" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Bot} label="AI助理" href="/ai-assistant" />
+                  <LazyNavItem icon={Bot} label="AI助理" href="/ai-assistant" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Tool} label="AI机维" href="/ai-maintenance" />
+                  <LazyNavItem icon={HelpCircle} label="AI机维" href="/ai-maintenance" />
                 </Suspense>
               </nav>
             </div>
@@ -346,13 +345,13 @@ export default function ClientDashboard() {
               )}
               <nav className="space-y-1">
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.DollarSign} label="收银管理" href="/cashier" />
+                  <LazyNavItem icon={DollarSign} label="收银管理" href="/cashier" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Package} label="仓库管理" href="/inventory" />
+                  <LazyNavItem icon={Package} label="仓库管理" href="/inventory" />
                 </Suspense>
                 <Suspense fallback={<NavItemSkeleton isOpen={isSidebarOpen} />}>
-                  <LazyNavItem icon={IconComponents.Settings} label="系统设置" href="/settings" />
+                  <LazyNavItem icon={Settings} label="系统设置" href="/settings" />
                 </Suspense>
               </nav>
             </div>
@@ -405,7 +404,7 @@ export default function ClientDashboard() {
                         className="ml-auto text-slate-400 hover:text-white"
                       >
                         <Suspense fallback={<div className="w-4 h-4" />}>
-                          <IconComponents.ChevronDown size={16} />
+                          <ChevronDown size={16} />
                         </Suspense>
                       </Button>
                     </DropdownMenuTrigger>
@@ -414,20 +413,20 @@ export default function ClientDashboard() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem>
                         <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                          <IconComponents.User size={16} className="mr-2" />
+                          <User size={16} className="mr-2" />
                         </Suspense>
                         个人资料
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                          <IconComponents.Settings size={16} className="mr-2" />
+                          <Settings size={16} className="mr-2" />
                         </Suspense>
                         账户设置
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={logout} className="text-red-500">
                         <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                          <IconComponents.LogOut size={16} className="mr-2" />
+                          <LogOut size={16} className="mr-2" />
                         </Suspense>
                         退出登录
                       </DropdownMenuItem>
@@ -442,7 +441,7 @@ export default function ClientDashboard() {
                 className="w-10 h-10 rounded-full text-slate-400 hover:text-white"
                 onClick={logout}
               >
-                <IconComponents.LogOut size={20} />
+                <LogOut size={20} />
               </Button>
             )}
           </div>
@@ -487,20 +486,20 @@ export default function ClientDashboard() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                      <IconComponents.User size={16} className="mr-2" />
+                      <User size={16} className="mr-2" />
                     </Suspense>
                     个人资料
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                      <IconComponents.Settings size={16} className="mr-2" />
+                      <Settings size={16} className="mr-2" />
                     </Suspense>
                     账户设置
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-500">
                     <Suspense fallback={<div className="w-4 h-4 mr-2" />}>
-                      <IconComponents.LogOut size={16} className="mr-2" />
+                      <LogOut size={16} className="mr-2" />
                     </Suspense>
                     退出登录
                   </DropdownMenuItem>
@@ -593,7 +592,7 @@ export default function ClientDashboard() {
                   count={5}
                   icon={
                     <Suspense fallback={<div className="w-8 h-8 bg-slate-200 rounded" />}>
-                      <IconComponents.Clock className="w-8 h-8 text-blue-500" />
+                      <Clock className="w-8 h-8 text-blue-500" />
                     </Suspense>
                   }
                   description="今日需要完成的任务"
@@ -606,7 +605,7 @@ export default function ClientDashboard() {
                   count={2}
                   icon={
                     <Suspense fallback={<div className="w-8 h-8 bg-slate-200 rounded" />}>
-                      <IconComponents.Users className="w-8 h-8 text-purple-500" />
+                      <Users className="w-8 h-8 text-purple-500" />
                     </Suspense>
                   }
                   description="已安排的会议"
@@ -619,7 +618,7 @@ export default function ClientDashboard() {
                   count={3}
                   icon={
                     <Suspense fallback={<div className="w-8 h-8 bg-slate-200 rounded" />}>
-                      <IconComponents.MessageSquare className="w-8 h-8 text-indigo-500" />
+                      <MessageSquare className="w-8 h-8 text-indigo-500" />
                     </Suspense>
                   }
                   description="需要查看的新消息"

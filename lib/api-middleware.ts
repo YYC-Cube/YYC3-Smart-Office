@@ -40,8 +40,8 @@ export function createApiResponse<T = null>(
   options?: { status?: number; message?: string },
 ) {
   const { 
-    status = 200, 
-    message = status < 300 ? '操作成功' : '操作失败',
+    status = 200 as number, 
+    message = (options?.status ?? 200) < 300 ? '操作成功' : '操作失败',
   } = options || {};
 
   return NextResponse.json(

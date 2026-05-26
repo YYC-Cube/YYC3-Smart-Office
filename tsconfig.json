@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "es2022",
+    "downlevelIteration": true,
     "lib": [
       "dom",
       "es2022"

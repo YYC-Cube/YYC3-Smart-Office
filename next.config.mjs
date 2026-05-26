@@ -11,7 +11,7 @@ const nextConfig = {
     domains: ['assets.example.com', 'ui-avatars.com'],
   },
   output: process.env.NEXT_STATIC_EXPORT === '1' ? 'export' : 'standalone',
-  trailingSlash: true,
+  trailingSlash: process.env.NEXT_STATIC_EXPORT === '1',
   async headers() {
     if (process.env.NEXT_STATIC_EXPORT === '1') {
       return [];

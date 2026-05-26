@@ -110,11 +110,14 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/yyc3-icons/') ||
     path.startsWith('/bg-login/') ||
     path.startsWith('/static/') ||
-    path.startsWith('/customer-') ||
-    path.startsWith('/team-') ||
-    path.startsWith('/innovation-') ||
-    path.startsWith('/environmental-') ||
-    path.startsWith('/placeholder')
+    path === '/customer-satisfaction-award.png' ||
+    path === '/team-award.png' ||
+    path === '/innovation-award.png' ||
+    path === '/environmental-award.png' ||
+    path === '/placeholder.svg' ||
+    path === '/placeholder.jpg' ||
+    path === '/placeholder-user.jpg' ||
+    path === '/placeholder-logo.svg'
   ) {
     return addSecurityHeaders(NextResponse.next());
   }
@@ -218,7 +221,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|_next/|favicon\\.ico|images/|fonts/|yyc3-icons/|bg-login/|static/|placeholder).*)',
+    '/((?!_next/static|_next/image|_next/|favicon\\.ico|images/|fonts/|yyc3-icons/|bg-login/|static/).*)',
   ],
   // middleware 运行时固定为 Edge，但保留字段以便后续迁移说明
   runtime: 'experimental-edge',

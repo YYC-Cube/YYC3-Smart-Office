@@ -220,7 +220,6 @@ export default function AIMaintenance() {
                       onSelect={(date: Date | undefined) => 
                         date && setNewTask({ ...newTask, dueDate: date })
                       }
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -308,7 +307,6 @@ export default function AIMaintenance() {
                       onSelect={(date: Date | undefined) =>
                         date && setNewCustomer({ ...newCustomer, lastContact: date })
                       }
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -339,7 +337,6 @@ export default function AIMaintenance() {
                       onSelect={(date: Date | undefined) =>
                         date && setNewCustomer({ ...newCustomer, nextContact: date })
                       }
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>

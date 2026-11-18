@@ -1,14 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },
   images: {
     unoptimized: true,
-    domains: ['assets.example.com', 'ui-avatars.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'assets.example.com' },
+      { protocol: 'https', hostname: 'ui-avatars.com' },
+    ],
   },
   output: process.env.NEXT_STATIC_EXPORT === '1' ? 'export' : 'standalone',
   trailingSlash: process.env.NEXT_STATIC_EXPORT === '1',
@@ -17,6 +17,10 @@ const nextConfig = {
       return [];
     }
     const isDev = process.env.NODE_ENV !== 'production';
+    const corsOrigin = process.env.CORS_ORIGIN;
+    if (!isDev && !corsOrigin) {
+      throw new Error('CORS_ORIGIN is required in production. Configure it through environment variables.');
+    }
     const csp = isDev
       ? "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' assets.example.com ui-avatars.com data:; connect-src 'self' ws:;"
       : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' assets.example.com ui-avatars.com data:; connect-src 'self';";
@@ -25,7 +29,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Origin', value: isDev ? '*' : 'https://smart-office.yyc3.vip' },
+          { key: 'Access-Control-Allow-Origin', value: isDev ? '*' : corsOrigin },
           { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,PATCH,DELETE,OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type,Authorization,X-CSRF-Token' },
           { key: 'Access-Control-Allow-Credentials', value: 'true' },

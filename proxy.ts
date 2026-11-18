@@ -88,17 +88,23 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+interface JwtPayloadLite {
+  exp: number;
+  isActive?: boolean;
+  [key: string]: unknown;
+}
+
 // 边缘运行时兼容：仅解析JWT载荷，不做签名校验（真正校验在 API 路由进行）
-function unsafeDecodeJwt(token: string): any {
+function unsafeDecodeJwt(token: string): JwtPayloadLite {
   const parts = token.split('.');
   if (parts.length !== 3) throw new Error('Invalid token');
   const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
   const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
   const jsonStr = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf-8');
-  return JSON.parse(jsonStr);
+  return JSON.parse(jsonStr) as JwtPayloadLite;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // 明确跳过 Next 静态资源与公共静态文件，避免拦截与请求对象变更导致 404
@@ -143,7 +149,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 解析令牌载荷（Edge 兼容）。真正的签名校验放在 Node 运行时的 API 路由。
-    const payload: any = unsafeDecodeJwt(token);
+    const payload = unsafeDecodeJwt(token);
 
     // 检查令牌是否过期
     const now = Math.floor(Date.now() / 1000);
@@ -223,6 +229,4 @@ export const config = {
   matcher: [
     '/((?!_next/static|_next/image|_next/|favicon\\.ico|images/|fonts/|yyc3-icons/|bg-login/|static/).*)',
   ],
-  // middleware 运行时固定为 Edge，但保留字段以便后续迁移说明
-  runtime: 'experimental-edge',
 };

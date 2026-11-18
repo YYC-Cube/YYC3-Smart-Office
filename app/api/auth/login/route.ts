@@ -61,40 +61,16 @@ function sanitizeInput(input: Record<string, unknown>): SanitizedInput {
   return sanitized;
 }
 
-const IS_DEV = process.env.NODE_ENV === 'development';
-
-const devFallbackUsers = [
-  {
-    id: '1',
-    username: 'admin',
-    password: '$2a$14$VKx0z5TQ3mJnL5Kq9GdHp.bKjR6fIOCEqRsCgDGofG3xZ8PmJYFfqW',
-    email: 'admin@0379.email',
-    name: '系统管理员',
-    role: 'admin',
-    isActive: true,
-    permissions: ['all'],
-  },
-  {
-    id: '2',
-    username: 'manager',
-    password: '$2a$14$dP2jYRg5MfEOsBskOY4Brek9aITRIz.lJFaKCJCHs5CznZToMb7RmK',
-    email: 'manager@0379.email',
-    name: '部门经理',
-    role: 'manager',
-    isActive: true,
-    permissions: ['employee_view', 'project_view', 'report_view'],
-  },
-  {
-    id: '3',
-    username: 'employee',
-    password: '$2a$14$FoEG3jIWjPfHVYb7sYk2NecCrvGQjG3LN3JxHrOXRbMGqN3EAkGSy',
-    email: 'employee@0379.email',
-    name: '普通员工',
-    role: 'employee',
-    isActive: true,
-    permissions: ['personal_view'],
-  },
-];
+type AuthUser = {
+  id: string;
+  username: string;
+  password: string;
+  email: string;
+  name: string;
+  role: string;
+  isActive: boolean;
+  permissions: string[];
+};
 
 // 限制登录尝试次数 - 增强版
 interface LoginAttemptInfo {
@@ -111,7 +87,10 @@ const MAX_USER_ATTEMPTS = 3;
 const USER_LOCK_TIME = 30 * 60 * 1000;
 
 function hashIpAddress(ip: string): string {
-  const salt = process.env.IP_HASH_SALT || 'default_salt';
+  const salt = process.env.IP_HASH_SALT;
+  if (!salt) {
+    throw new Error('IP_HASH_SALT is not configured. Set it in your environment variables.');
+  }
   return crypto.createHash('sha256').update(ip + salt).digest('hex');
 }
 
@@ -200,7 +179,8 @@ function cleanupExpiredAttempts() {
 
 export async function POST(request: NextRequest) {
   try {
-    const clientIp = (request as any).ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const requestWithIp = request as NextRequest & { ip?: string };
+    const clientIp = requestWithIp.ip || request.headers.get('x-forwarded-for') || 'unknown';
 
     await Logger.info(LogType.AUTH, '登录请求到达', {
       ip: clientIp,
@@ -251,7 +231,7 @@ export async function POST(request: NextRequest) {
       return createApiResponse(null, { status: 403, message: 'CSRF令牌验证失败' });
     }
 
-    let user: typeof devFallbackUsers[number] | null = null;
+    let user: AuthUser | null = null;
 
     try {
       const dbResult = await db.select().from(users).where(eq(users.username, data.username)).limit(1);
@@ -268,10 +248,13 @@ export async function POST(request: NextRequest) {
           permissions: u.role === 'admin' ? ['all'] : ['personal_view'],
         };
       }
-    } catch {
-      if (IS_DEV) {
-        user = devFallbackUsers.find(u => u.username === data.username) || null;
-      }
+    } catch (error) {
+      await Logger.error(LogType.AUTH, '用户查询失败', {
+        ip: clientIp,
+        username: data.username,
+        error: error instanceof Error ? error.message : 'unknown error',
+      });
+      return createApiResponse(null, { status: 503, message: '认证服务暂不可用' });
     }
 
     if (!user || !user.isActive) {

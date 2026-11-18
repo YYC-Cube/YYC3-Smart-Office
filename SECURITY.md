@@ -27,8 +27,12 @@
 | `JWT_SECRET` | ≥ 32 字符 | JWT 签名密钥 |
 | `DATABASE_URL` | 必填 | PostgreSQL 连接字符串 |
 | `CSRF_SECRET` | 推荐 | CSRF 令牌加密密钥 |
+| `IP_HASH_SALT` | 必填 | 登录限流使用的 IP 哈希盐 |
+| `CORS_ORIGIN` | 生产必填 | API 跨域允许来源 |
 | `UPSTASH_REDIS_REST_URL` | 可选 | Redis 存储（多实例部署必需） |
 | `UPSTASH_REDIS_REST_TOKEN` | 可选 | Redis 认证令牌 |
+
+所有密钥、口令与盐值必须通过环境变量或 Kubernetes Secret 注入；仓库仅保留 `.env.example` 占位模板。首次调研的依赖审计结果见 [YYC3-首次调研-全维度技术分析与测试验证报告](docs/YYC3-审核总结-完善衔接/YYC3-首次调研-全维度技术分析与测试验证报告.md)。
 
 ## 报告安全漏洞
 

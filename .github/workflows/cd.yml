@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js (for build scripts)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19.5'
           cache: 'pnpm'
 
       - name: Login to GHCR
@@ -69,6 +69,11 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            DATABASE_URL=postgresql://build:build@localhost:5432/build
+            JWT_SECRET=build-only-jwt-secret-key-min-32-chars
+            IP_HASH_SALT=build-only-ip-hash-salt
+            CORS_ORIGIN=https://ci.example.invalid
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

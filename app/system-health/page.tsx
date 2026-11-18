@@ -46,7 +46,7 @@ interface HealthMetricCardProps {
   className?: string;
 }
 
-const HealthMetricCard: React.FC<HealthMetricCardProps> = ({ title, value, subtitle, trend, icon, className }): JSX.Element => {
+const HealthMetricCard: React.FC<HealthMetricCardProps> = ({ title, value, subtitle, trend, icon, className }): React.JSX.Element => {
   const trendClasses = {
     up: 'text-red-500',
     down: 'text-green-500',
@@ -85,7 +85,7 @@ export interface CircuitBreakerStats {
 // 断路器状态表格组件
 const CircuitBreakerTable: React.FC<{
   circuitBreakers: Record<string, CircuitBreakerStats>;
-}> = ({ circuitBreakers }): JSX.Element => {
+}> = ({ circuitBreakers }): React.JSX.Element => {
   const sortedBreakers = Object.entries(circuitBreakers)
     .sort(([, a]: [string, CircuitBreakerStats], [, b]: [string, CircuitBreakerStats]) => {
       // 优先显示开路状态的断路器
@@ -180,7 +180,7 @@ const MetricsChart: React.FC<{
       avg: number;
     };
   }>;
-}> = ({ metrics }): JSX.Element => {
+}> = ({ metrics }): React.JSX.Element => {
   const metricsList = Object.entries(metrics).map(([name, data]) => ({ name, ...data }));
   
   return (
@@ -257,7 +257,7 @@ export interface SystemStatus {
   }>;
 }
 
-const SystemHealthPage: React.FC = (): JSX.Element => {
+const SystemHealthPage: React.FC = (): React.JSX.Element => {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

@@ -6,48 +6,44 @@
   <p><strong>高效 · 智能 · 协同</strong> — 企业级智能办公解决方案</p>
 </div>
 
-## 📊 项目评分
+## 当前质量状态（Next.js 16 升级后）
 
-| 评估维度 | 得分 | 评级 |
+| 评估维度 | 结论 | 证据 |
 |----------|------|------|
-| 功能完整性 | 9.2 | ⭐⭐⭐⭐⭐ |
-| 业务逻辑正确性 | 9.0 | ⭐⭐⭐⭐⭐ |
-| 安全性 | 8.8 | ⭐⭐⭐⭐☆ |
-| 性能指标 | 8.5 | ⭐⭐⭐⭐☆ |
-| 代码质量 | 9.0 | ⭐⭐⭐⭐⭐ |
-| **综合评分** | **8.85** | **✅ 通过验收** |
+| 单元与接口测试 | 通过 | 8 个测试套件、54 项通过、7 项跳过 |
+| 覆盖率 | 未通过 | 语句约 5.24%，低于 80% 阈值，保持严格门禁 |
+| Lint / 类型检查 / 构建 | 通过 | ESLint 0 errors；`tsc --noEmit` 0 errors；`next build` 成功 |
+| 依赖安全 | 通过 | `pnpm run audit`：No known vulnerabilities found |
+| **综合结论** | **有条件通过** | 技术栈升级与漏洞修复已完成；覆盖率补测仍为放行前置条件 |
 
 ## 🏆 项目徽章
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-0070f3?style=for-the-badge" alt="Next.js">
-  <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge" alt="React">
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178c6?style=for-the-badge" alt="TypeScript">
-  <img src="https://img.shields.io/badge/TailwindCSS-3-0ea5e9?style=for-the-badge" alt="TailwindCSS">
-  <img src="https://img.shields.io/badge/PostgreSQL-14-336791?style=for-the-badge" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Next.js-16.4.6-0070f3?style=for-the-badge" alt="Next.js 16.4.6">
+  <img src="https://img.shields.io/badge/React-19.3.1-61dafb?style=for-the-badge" alt="React 19.3.1">
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178c6?style=for-the-badge" alt="TypeScript 5.9">
+  <img src="https://img.shields.io/badge/TailwindCSS-4-0ea5e9?style=for-the-badge" alt="TailwindCSS 4">
+  <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge" alt="PostgreSQL">
   <img src="https://img.shields.io/badge/shadcn_ui-%23000000?style=for-the-badge" alt="shadcn/ui">
 </div>
 
 <div align="center" style="margin-top: 15px;">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT">
-  <img src="https://img.shields.io/badge/Code%20Quality-A%2B-blue?style=flat-square" alt="Code Quality A+">
   <img src="https://img.shields.io/badge/Responsive-Design-ff6b6b?style=flat-square" alt="Responsive Design">
-  <img src="https://img.shields.io/badge/Security-Enhanced-ff9f43?style=flat-square" alt="Security Enhanced">
-  <img src="https://img.shields.io/badge/Maintained-Yes-brightgreen?style=flat-square" alt="Maintained">
-  <img src="https://img.shields.io/badge/Contributions-Welcome-orange?style=flat-square" alt="Contributions Welcome">
-</div>
-
-<div align="center" style="margin-top: 15px;">
-  <img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=flat-square" alt="Node.js 18+">
   <img src="https://img.shields.io/badge/JWT-Auth-9c27b0?style=flat-square" alt="JWT Auth">
   <img src="https://img.shields.io/badge/CSRF-Protected-2196F3?style=flat-square" alt="CSRF Protected">
   <img src="https://img.shields.io/badge/AI-Powered-e91e63?style=flat-square" alt="AI Powered">
-  <img src="https://img.shields.io/badge/Team-Collaboration-4caf50?style=flat-square" alt="Team Collaboration">
+</div>
+
+<div align="center" style="margin-top: 15px;">
+  <img src="https://img.shields.io/badge/Node.js-20.9%2B-339933?style=flat-square" alt="Node.js 20.9+">
+  <img src="https://img.shields.io/badge/pnpm-10.4.1-f9ad00?style=flat-square" alt="pnpm 10.4.1">
+  <img src="https://img.shields.io/badge/Audit-Clean-green?style=flat-square" alt="Audit Clean">
 </div>
 
 ## 📋 项目简介
 
-YYC 智能办公系统是一款集成了现代企业办公所需各项功能的综合解决方案，采用最新的前端技术栈打造，旨在提升企业办公效率，优化管理流程，促进团队协作。
+YYC³ 智能办公系统是一款集成了现代企业办公所需各项功能的综合解决方案，采用 Next.js App Router 技术栈打造，旨在提升企业办公效率，优化管理流程，促进团队协作。
 
 ### 核心价值
 
@@ -92,31 +88,33 @@ YYC 智能办公系统是一款集成了现代企业办公所需各项功能的�
 
 ### 前端技术
 
-- **框架**：Next.js 14 (App Router), React 18
-- **语言**：TypeScript 5.9 (strict mode)
-- **样式**：Tailwind CSS, shadcn/ui
-- **UI组件**：Radix UI, Lucide Icons
-- **数据可视化**：Recharts, react-organizational-chart
+- **框架**：Next.js 16.4.6 (App Router, Turbopack), React 19.3.1
+- **语言**：TypeScript 5.9 (strict mode, ESM)
+- **样式**：Tailwind CSS 4.3.5, shadcn/ui
+- **UI组件**：Radix UI, Lucide Icons 1.74.0, react-day-picker 10
+- **数据可视化**：Recharts 3.11.0, react-organizational-chart
 
 ### 后端技术
 
-- **API**：Next.js API Routes (Route Handlers)
-- **数据库**：PostgreSQL + Drizzle ORM
+- **API**：Next.js Route Handlers (REST/JSON)
+- **数据库**：PostgreSQL + Drizzle ORM 0.45.4
 - **认证**：JWT (24h + Refresh), CSRF 双重验证
-- **安全**：bcrypt 14轮, 速率限制, 断路器, Zod 验证
+- **安全**：bcrypt, 速率限制, 断路器, Zod 4.6.7 验证
+- **请求代理**：`proxy.ts`（Next 16 middleware 新约定）
 
 ### 开发工具
 
-- **包管理**：pnpm
-- **代码规范**：ESLint, TypeScript strict
-- **测试**：Jest + Testing Library
+- **包管理**：pnpm 10.4.1（单包，无 workspace）
+- **代码规范**：ESLint 9 扁平配置 + TypeScript strict
+- **测试**：Jest 30.5.2 + Testing Library（覆盖率阈值 80%）
+- **依赖审计**：`pnpm run audit`（官方 registry，当前零已知漏洞）
 - **部署**：Docker (standalone) + Kubernetes + GitHub Actions CI/CD
 
 ## 📊 系统分析
 
 ### 优势
 
-1. **现代化技术栈**：采用Next.js 14和React 18，性能优异
+1. **现代化技术栈**：采用 Next.js 16.4.6 和 React 19.3.1，具备 App Router、Turbopack 与 React Server Components 能力
 2. **UI设计出色**：使用shadcn/ui和Tailwind CSS构建的界面美观且响应式
 3. **功能全面**：涵盖企业办公核心需求
 4. **数据可视化**：多维数据展示，便于决策分析
@@ -159,9 +157,9 @@ YYC 智能办公系统是一款集成了现代企业办公所需各项功能的�
 
 ### 前置要求
 
-- Node.js 20+
+- Node.js 20.9.0+（推荐 20.19.5）
 - pnpm 10+
-- PostgreSQL 14+
+- PostgreSQL（团队基线 PG15，实际部署版本待确认）
 
 ### 安装步骤
 
@@ -212,6 +210,10 @@ docker compose up -d
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 打开 Pull Request
 
+## 调研与整改文档
+
+首次技术调研、七维分析、测试验证、问题分级、整改设计与后续规划统一存放于 [docs/YYC3-审核总结-完善衔接](docs/YYC3-审核总结-完善衔接/README.md)。
+
 ## 📧 联系我们
 
 如有任何问题或建议，请联系：
@@ -225,6 +227,11 @@ docker compose up -d
 
 ---
 
-<div align="center">
-  <p>© 2024-2026 YYC³ Smart-Office. All rights reserved.</p>
-</div>
+<p align="center">
+  <b>YYC³</b>（YanYuCloudCube™ · 注册商标）<br>
+  言启象限 | 语枢未来<br>
+  <i>Words Initiate Quadrants, Language Serves as Core for Future</i><br>
+  万象归元于云枢 | 深栈智启新纪元<br>
+  <i>All things converge in cloud pivot; Deep stacks ignite a new era of intelligence</i><br>
+  <sub>© 2026 YanYuCloudCube™（YYC³）· <a href="mailto:admin@0379.email">admin@0379.email</a></sub>
+</p>

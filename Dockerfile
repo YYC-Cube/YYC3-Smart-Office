@@ -16,6 +16,16 @@ RUN pnpm install --frozen-lockfile
 # Copy source
 COPY . .
 
+# Build-time environment only. Runtime secrets are injected via Kubernetes Secret.
+ARG DATABASE_URL
+ARG JWT_SECRET
+ARG IP_HASH_SALT
+ARG CORS_ORIGIN
+ENV DATABASE_URL=${DATABASE_URL} \
+    JWT_SECRET=${JWT_SECRET} \
+    IP_HASH_SALT=${IP_HASH_SALT} \
+    CORS_ORIGIN=${CORS_ORIGIN}
+
 # Build Next.js standalone output
 RUN pnpm build
 

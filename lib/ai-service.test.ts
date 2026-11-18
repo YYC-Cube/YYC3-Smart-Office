@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { z } from 'zod';
 
 describe('AI Service', () => {
   describe('AIService core logic', () => {
@@ -50,8 +51,6 @@ describe('AI Service', () => {
   });
 
   describe('Chat schema validation', () => {
-    const { z } = require('zod');
-
     const chatSchema = z.object({
       messages: z.array(z.object({
         role: z.enum(['system', 'user', 'assistant']),

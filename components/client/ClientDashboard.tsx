@@ -42,7 +42,128 @@ const HonorsShowcase = lazy(() => import('@/components/honors-showcase').then((m
 // 项目状态类型定义
 type ProjectStatus = '进行中' | '计划中' | '审核中' | '已完成';
 
+const LazyNavItem = ({ icon: Icon, label, href }: { icon: React.ElementType; label: string; href: string }) => (
+  <a
+    href={href}
+    className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-200"
+  >
+    <Icon size={20} className="mr-3" />
+    <span>{label}</span>
+  </a>
+);
 
+const NavItemSkeleton = ({ isOpen }: { isOpen: boolean }) => (
+  <div className="flex items-center px-3 py-2 text-sm font-medium rounded-md">
+    <Skeleton className="w-5 h-5 mr-3 rounded" />
+    {isOpen && <Skeleton className="w-20 h-4 rounded" />}
+  </div>
+);
+
+const DashboardCard = ({
+  title,
+  count,
+  icon,
+  description,
+  color,
+}: {
+  title: string;
+  count: number;
+  icon: React.ReactNode;
+  description: string;
+  color: 'blue' | 'purple' | 'indigo';
+}) => {
+  const gradients = {
+    blue: 'from-blue-500 to-blue-600',
+    purple: 'from-purple-500 to-purple-600',
+    indigo: 'from-indigo-500 to-indigo-600',
+  };
+
+  return (
+    <Card className="hover-lift overflow-hidden">
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradients[color]} opacity-10 rounded-bl-full`}
+      ></div>
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm font-medium text-slate-500">{title}</p>
+            <h3 className="text-3xl font-bold mt-1">{count}</h3>
+            <p className="text-sm text-slate-500 mt-1">{description}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white shadow-sm">{icon}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const ProjectItem = ({ name, status, progress, team }: { name: string; status: ProjectStatus; progress: number; team: string[] }) => {
+  const statusColors: Record<ProjectStatus, string> = {
+    进行中: 'bg-green-100 text-green-800',
+    计划中: 'bg-yellow-100 text-yellow-800',
+    审核中: 'bg-blue-100 text-blue-800',
+    已完成: 'bg-purple-100 text-purple-800',
+  };
+
+  return (
+    <div className="bg-white/50 p-4 rounded-lg">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="font-medium text-slate-800">{name}</h3>
+        <span className={`text-xs px-2 py-1 rounded-full ${statusColors[status]}`}>{status}</span>
+      </div>
+      <div className="mb-3">
+        <div className="flex justify-between text-xs text-slate-500 mb-1">
+          <span>进度</span>
+          <span>{progress}%</span>
+        </div>
+        <Progress
+          value={progress}
+          className="h-2 bg-slate-100"
+          indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-500"
+        />
+      </div>
+      <div className="flex items-center">
+        <div className="flex -space-x-2">
+          {team.map((member, index) => (
+            <Avatar key={index} className="h-6 w-6 border-2 border-white">
+              <AvatarFallback className="text-[10px]">{member[0]}</AvatarFallback>
+            </Avatar>
+          ))}
+        </div>
+        <span className="text-xs text-slate-500 ml-2">{team.length} 名成员</span>
+      </div>
+    </div>
+  );
+};
+
+const DashboardCardSkeleton = () => (
+  <Card className="glass-card overflow-hidden">
+    <CardContent className="p-6">
+      <div className="flex justify-between items-start mb-4">
+        <div className="h-10 w-10 bg-slate-200 rounded-full animate-pulse"></div>
+        <div className="h-6 w-16 bg-slate-200 rounded animate-pulse"></div>
+      </div>
+      <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mb-2"></div>
+      <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+    </CardContent>
+  </Card>
+);
+
+const ProjectItemSkeleton = () => (
+  <div className="p-4 border border-slate-200 rounded-lg bg-white/50 animate-pulse">
+    <div className="h-5 w-48 bg-slate-200 rounded mb-2"></div>
+    <div className="flex justify-between items-center mb-2">
+      <div className="h-4 w-20 bg-slate-200 rounded"></div>
+      <div className="h-4 w-10 bg-slate-200 rounded"></div>
+    </div>
+    <div className="h-2 w-full bg-slate-200 rounded mb-3"></div>
+    <div className="flex flex-wrap gap-2">
+      <div className="h-6 w-16 bg-slate-200 rounded"></div>
+      <div className="h-6 w-16 bg-slate-200 rounded"></div>
+      <div className="h-6 w-16 bg-slate-200 rounded"></div>
+    </div>
+  </div>
+);
 
 /**
  * @description 客户端仪表盘组件
@@ -100,137 +221,6 @@ export default function ClientDashboard() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // 优化的导航项组件，使用懒加载的图标
-  const LazyNavItem = ({ icon: Icon, label, href }: { icon: React.ElementType; label: string; href: string }) => (
-    <a
-      href={href}
-      className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-200"
-    >
-      <Icon size={20} className="mr-3" />
-      <span>{label}</span>
-    </a>
-  );
-
-  // 骨架屏优化组件
-  const NavItemSkeleton = ({ isOpen }: { isOpen: boolean }) => (
-    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-md">
-      <Skeleton className="w-5 h-5 mr-3 rounded" />
-      {isOpen && <Skeleton className="w-20 h-4 rounded" />}
-    </div>
-  );
-
-  // 仪表盘卡片组件
-  const DashboardCard = ({
-    title,
-    count,
-    icon,
-    description,
-    color,
-  }: {
-    title: string;
-    count: number;
-    icon: React.ReactNode;
-    description: string;
-    color: 'blue' | 'purple' | 'indigo';
-  }) => {
-    const gradients = {
-      blue: 'from-blue-500 to-blue-600',
-      purple: 'from-purple-500 to-purple-600',
-      indigo: 'from-indigo-500 to-indigo-600',
-    };
-
-    return (
-      <Card className="hover-lift overflow-hidden">
-        <div
-          className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradients[color]} opacity-10 rounded-bl-full`}
-        ></div>
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-slate-500">{title}</p>
-              <h3 className="text-3xl font-bold mt-1">{count}</h3>
-              <p className="text-sm text-slate-500 mt-1">{description}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-white shadow-sm">{icon}</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  // 项目项组件
-  const ProjectItem = ({ name, status, progress, team }: { name: string; status: ProjectStatus; progress: number; team: string[] }) => {
-    const statusColors: Record<ProjectStatus, string> = {
-      进行中: 'bg-green-100 text-green-800',
-      计划中: 'bg-yellow-100 text-yellow-800',
-      审核中: 'bg-blue-100 text-blue-800',
-      已完成: 'bg-purple-100 text-purple-800',
-    };
-
-    return (
-      <div className="bg-white/50 p-4 rounded-lg">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-medium text-slate-800">{name}</h3>
-          <span className={`text-xs px-2 py-1 rounded-full ${statusColors[status]}`}>{status}</span>
-        </div>
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-slate-500 mb-1">
-            <span>进度</span>
-            <span>{progress}%</span>
-          </div>
-          <Progress
-            value={progress}
-            className="h-2 bg-slate-100"
-            indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-500"
-          />
-        </div>
-        <div className="flex items-center">
-          <div className="flex -space-x-2">
-            {team.map((member, index) => (
-              <Avatar key={index} className="h-6 w-6 border-2 border-white">
-                <AvatarFallback className="text-[10px]">{member[0]}</AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          <span className="text-xs text-slate-500 ml-2">{team.length} 名成员</span>
-        </div>
-      </div>
-    );
-  };
-
-  // 仪表盘卡片骨架屏
-  const DashboardCardSkeleton = () => (
-    <Card className="glass-card overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="h-10 w-10 bg-slate-200 rounded-full animate-pulse"></div>
-          <div className="h-6 w-16 bg-slate-200 rounded animate-pulse"></div>
-        </div>
-        <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mb-2"></div>
-        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
-      </CardContent>
-    </Card>
-  );
-
-  // 项目项骨架屏
-  const ProjectItemSkeleton = () => (
-    <div className="p-4 border border-slate-200 rounded-lg bg-white/50 animate-pulse">
-      <div className="h-5 w-48 bg-slate-200 rounded mb-2"></div>
-      <div className="flex justify-between items-center mb-2">
-        <div className="h-4 w-20 bg-slate-200 rounded"></div>
-        <div className="h-4 w-10 bg-slate-200 rounded"></div>
-      </div>
-      <div className="h-2 w-full bg-slate-200 rounded mb-3"></div>
-      <div className="flex flex-wrap gap-2">
-        <div className="h-6 w-16 bg-slate-200 rounded"></div>
-        <div className="h-6 w-16 bg-slate-200 rounded"></div>
-        <div className="h-6 w-16 bg-slate-200 rounded"></div>
-      </div>
-    </div>
-  );
-
-
 
   return (
     <div className="flex h-screen overflow-hidden">

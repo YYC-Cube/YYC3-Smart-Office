@@ -65,61 +65,8 @@ export function refreshToken(oldToken: string) {
   }
 }
 
-// 验证用户凭据（在实际应用中，这里应该查询数据库验证用户名和密码）
-export async function validateCredentials(
-  username: string,
-  // eslint-disable-next-line no-unused-vars
-  _password: string
-) {
-  // 注意：这是一个模拟实现
-  // 实际应用中，应该从数据库中查询用户并验证密码哈希
-
-  // 模拟用户数据
-  const mockUsers = [
-    {
-      id: '1',
-      username: 'admin',
-      password: '$2a$10$mF7wFgJfL5e4R3T2Y1U0I.KdJhgFdSaMqWeRtYuIoPlKjHgFdSaMq', // 模拟的哈希密码
-      email: 'admin@example.com',
-      role: 'admin',
-      isActive: true,
-    },
-    {
-      id: '2',
-      username: 'user',
-      password: '$2a$10$zY9X8W7V6U5T4S3R2Q1P.OnMkJlIiHhGgFfEeDdCcBbAaZzYyXx', // 模拟的哈希密码
-      email: 'user@example.com',
-      role: 'user',
-      isActive: true,
-    },
-  ];
-
-  // 查找用户
-  const user = mockUsers.find(u => u.username === username);
-
-  if (!user || !user.isActive) {
-    return null;
-  }
-
-  // 在实际应用中，应该使用bcrypt.compare来验证密码
-  // 这里为了简化，我们假设密码是正确的
-  // const passwordMatch = await bcrypt.compare(password, user.password);
-
-  // 由于这是模拟实现，我们假设密码验证总是成功
-  const passwordMatch = true;
-
-  if (!passwordMatch) {
-    return null;
-  }
-
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
-  };
-}
+// 凭据校验统一由 app/api/auth/login/route.ts 查询数据库并调用 verifyPassword 完成。
+// 本模块不再保留任何模拟账号、硬编码哈希或绕过密码校验的实现。
 
 // 从请求头或cookie中获取令牌
 export function getTokenFromRequest(request: { headers?: { authorization?: string }, cookies?: { auth_token?: string } }): string | null {

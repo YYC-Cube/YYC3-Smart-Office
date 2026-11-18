@@ -9,9 +9,11 @@ let client: postgres.Sql | null = null;
 // 初始化数据库连接
 export function initDb() {
   if (!client) {
-    // 从环境变量获取数据库连接信息
-    const connectionString =
-      process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/yyc_smart_office';
+    // 数据库连接串必须由环境变量注入，禁止内置默认口令
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('DATABASE_URL is required. Configure it through environment variables.');
+    }
 
     client = postgres(connectionString, {
       max: 10, // 连接池最大连接数

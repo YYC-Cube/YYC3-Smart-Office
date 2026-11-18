@@ -1,6 +1,6 @@
 # 贡献指南 · CONTRIBUTING
 
-感谢关注 YYC³ 家族项目！贡献前请先阅读 [团队标准规范 SSOT](../../YYC3-团队通用-标准规范/)。
+感谢关注 YYC³ 家族项目！贡献前请先阅读 [团队标准规范 SSOT](docs/YYC3-团队通用-标规文档/README.md)。提交前必须本地执行 `pnpm lint`、`pnpm typecheck`、`pnpm test` 与 `pnpm run audit`；CI 不再忽略任何门禁失败。
 
 ## 🌿 分支规范
 
@@ -36,4 +36,4 @@ test: 测试          build: 构建         chore: 杂务
 
 ---
 
-> ***YanYuCloudCube*** · *言启象限 | 语枢未来*
+> **YYC³**（YanYuCloudCube™ · 注册商标）· *言启象限 | 语枢未来*

@@ -8,16 +8,23 @@ on:
       - 'docs/**'
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CI: 'true'
+  NEXT_TELEMETRY_DISABLED: '1'
+
 jobs:
   quality:
     name: Quality Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -28,28 +35,34 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19.5'
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: ESLint
         run: pnpm lint
-        continue-on-error: true
 
       - name: TypeScript
-        run: npx tsc --noEmit
+        run: pnpm typecheck
 
-      - name: Test
-        run: npx jest --ci --coverage --coverageReporters=text
+      - name: Test and Coverage
+        run: pnpm exec jest --ci --coverage --coverageReporters=text --runInBand
         env:
           JWT_SECRET: ci-test-jwt-secret-key-min-32-chars-long
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_test
-        continue-on-error: true
+          IP_HASH_SALT: ci-ip-hash-salt
+          CORS_ORIGIN: https://ci.example.invalid
+
+      - name: Dependency Audit
+        run: pnpm run audit
 
       - name: Build
         run: pnpm build
         env:
           JWT_SECRET: ci-build-jwt-secret-key-min-32-chars-long
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_test
-          SKIP_ENV_VALIDATION: true
+          IP_HASH_SALT: ci-ip-hash-salt
+          CORS_ORIGIN: https://ci.example.invalid
+          NEXT_STATIC_EXPORT: '0'

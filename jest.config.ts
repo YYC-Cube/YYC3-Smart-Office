@@ -11,6 +11,7 @@ const config: Config = {
   coverageProvider: 'v8',
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
   moduleNameMapper: {
     // 处理模块别名
     '^@/(.*)$': '<rootDir>/$1',

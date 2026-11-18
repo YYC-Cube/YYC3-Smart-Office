@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -32,7 +32,7 @@ const orgData: OrgNode = {
   ],
 };
 
-function renderTree(node: OrgNode): JSX.Element {
+function renderTree(node: OrgNode): React.JSX.Element {
   return (
     <TreeNode
       label={

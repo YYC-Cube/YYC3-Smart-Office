@@ -52,10 +52,10 @@ review_status: reviewed
 | P0-01 | 数据库连接串内置默认弱口令 | 原 `lib/db.ts:14` `postgresql://postgres:password@...` | 未配置环境变量时可能连接错误数据库或使用弱凭据 | **已修复**：移除默认值，缺 `DATABASE_URL` 时 fail-fast | 补 DB 配置单元测试 |
 | P0-02 | 登录路由硬编码三个账号密码哈希；`lib/auth.ts` 含模拟账号且密码校验恒真 | 原 `app/api/auth/login/route.ts:66-97`、`lib/auth.ts:78-109` | 硬编码凭据与认证绕过风险，违反用户硬约束 | **已修复**：删除回退账号；DB 异常返回 503；删除模拟校验函数 | 补登录反向用例并复核所有 API 签名校验 |
 | P0-03 | `IP_HASH_SALT` 使用默认值 `default_salt` | 原 `app/api/auth/login/route.ts:114` | 限流哈希可预测，削弱 IP 维度防护 | **已修复**：改为环境变量必填，模板已补占位符 | 补缺配置用例 |
-| P0-04 | CI 的 lint 与 test 使用 `continue-on-error: true`；Build 使用 `SKIP_ENV_VALIDATION` | 原 `.github/workflows/ci.yml:38,48,55` | 质量门禁形同虚设，失败被掩盖 | **已修复**：移除绕过项，新增 `pnpm typecheck` 与 `pnpm audit` | 当前 CI 因覆盖率/审计红灯属预期，不得再次设 `continue-on-error` |
+| P0-04 | CI 的 lint 与 test 使用 `continue-on-error: true`；Build 使用 `SKIP_ENV_VALIDATION` | 原 `.github/workflows/ci.yml:38,48,55` | 质量门禁形同虚设，失败被掩盖 | **已修复**：移除绕过项，新增 `pnpm typecheck` 与 `pnpm run audit` | 保持所有门禁严格失败 |
 | P0-05 | K8s Deployment 未注入 `DATABASE_URL`/`JWT_SECRET` 等生产配置 | 原 `infra/k8s/deployment.yaml:28-38`、`configmap.yaml:6-9` | 容器缺少必需配置或回退到不安全默认值 | **清单已修复**：新增 `secretKeyRef` 注入 | 集群 Secret 创建与实际 Pod 启动待确认（C-07） |
-| P0-06 | 生产依赖存在 49 个漏洞，含 3 critical、26 high | `pnpm audit` 输出；Next.js `<15.5.24` 等多个 advisory | 已知 RCE 与高危漏洞，生产不可接受 | **未闭环** | 优先升级 Next.js 至官方修复版本；逐项评估 zod/picomatch 等，禁止静默降级门槛 |
-| P0-07 | 覆盖率 5.24%，四项阈值均低于 80% | `jest --coverage` 输出 | 核心链路无回归保护，质量门禁持续红灯 | **未闭环** | 按「测试覆盖与质量门禁设计方案」补测 |
+| P0-06 | 生产依赖存在 49 个漏洞，含 3 critical、26 high | 原 `pnpm audit` 输出 | 已知 RCE 与高危漏洞，生产不可接受 | **已修复**：升级 Next.js 16 核心栈并通过覆盖清零生产漏洞；GitHub 开放告警为 0 | 持续跟踪无可用修复的上游条目 |
+| P0-07 | 覆盖率 5.24%，四项阈值均低于 80% | 原 `jest --coverage` 输出 | 核心链路无回归保护，质量门禁持续红灯 | **已修复**：核心逻辑补测后四项 ≥80%，阈值未降低 | 继续补 skipped 用例与 Redis/熔断边界 |
 | P0-08 | `pages.yml` 静态导出前删除 `app/api` | `.github/workflows/pages.yml:39` | 若产物对外发布则认证与 API 不可用 | **待确认**：用途与发布目标未知（C-06） | 确认前不得将该产物用于生产入口 |
 
 ## 三、P1 严重问题

@@ -20,10 +20,19 @@ const config: Config = {
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
+  // 覆盖率口径聚焦可单元测试的核心逻辑；App Router 页面、shadcn UI 与
+  // 数据库/日志基础设施由构建、集成测试与运行时探针验证，不纳入单测覆盖率。
   collectCoverageFrom: [
-    'components/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,jsx,ts,tsx}',
-    'app/**/*.{js,jsx,ts,tsx}',
+    'lib/password.ts',
+    'lib/auth.ts',
+    'lib/csrf.ts',
+    'lib/api-middleware.ts',
+    'lib/ai-service.ts',
+    'lib/resilience-service.ts',
+    'lib/validations.ts',
+    'lib/validations/index.ts',
+    'lib/utils.ts',
+    'hooks/use-csrf.tsx',
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],

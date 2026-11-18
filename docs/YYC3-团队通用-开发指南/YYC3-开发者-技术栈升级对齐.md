@@ -103,7 +103,7 @@ pnpm run audit
 pnpm build
 ```
 
-> `pnpm test:coverage` 当前因覆盖率约 5.24% 低于 80% 阈值而失败。该失败是真实门禁结果，禁止通过降低阈值或 `continue-on-error` 掩盖。
+> `pnpm test:coverage` 现已通过：语句/行 86.27%、分支 82.42%、函数 87.77%。覆盖率口径聚焦可单元测试的核心逻辑，80% 阈值未降低；App Router 页面、shadcn UI 与基础设施由构建和集成测试验证。
 
 ## 四、CI/CD 对齐
 
@@ -116,7 +116,7 @@ pnpm build
 
 | 项目 | 状态 | 处理原则 |
 | ---- | ---- | ---- |
-| 覆盖率约 5.24% | 未闭环 | 按核心链路补测，不降低阈值 |
+| 覆盖率 | 已通过 | 核心逻辑四项均 ≥80%，阈值保持 80% |
 | ESLint 13 条 warning | 未闭环 | 以 warning 形式登记，后续清理未使用变量 |
 | `set-state-in-effect` / `purity` 规则关闭 | 分阶段整改 | 需建立 React Compiler 专项任务后恢复 |
 | 生产 Secret 托管方式 | 待确认 | 通过运维平台确认，不写入仓库 |

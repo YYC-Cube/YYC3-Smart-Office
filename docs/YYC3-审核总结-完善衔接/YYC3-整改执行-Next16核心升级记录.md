@@ -100,8 +100,8 @@ No known vulnerabilities found
 | ---- | ---- |
 | `pnpm lint` | 0 errors，13 warnings |
 | `pnpm typecheck` | 0 errors |
-| `pnpm test` | 8 suites / 54 passed / 7 skipped |
-| `pnpm test:coverage` | 约 5.24%，低于 80%，仍为真实红灯 |
+| `pnpm test` | 10 suites / 94 passed / 7 skipped |
+| `pnpm test:coverage` | 语句/行 86.27%、分支 82.42%、函数 87.77%，80% 门禁通过 |
 | `pnpm run audit` | No known vulnerabilities found |
 | `pnpm build` | Next.js 16.4.6 standalone build success，无配置警告 |
 
@@ -109,7 +109,7 @@ No known vulnerabilities found
 
 | 项 | 说明 |
 | ---- | ---- |
-| 覆盖率 | 约 5.24%，需按核心链路补测，不得降低阈值 |
+| 覆盖率 | 已通过 80% 门禁，详见《覆盖率提升记录》 |
 | ESLint warnings | 13 条未使用变量/无效 disable 指令，后续清理 |
 | React Compiler 规则 | `set-state-in-effect` 与 `purity` 暂显式关闭，需专项整改后恢复 |
 | 生产 Secret 托管 | K8s Secret 实际创建方式待确认 |

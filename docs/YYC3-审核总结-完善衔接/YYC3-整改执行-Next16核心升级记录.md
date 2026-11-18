@@ -76,13 +76,15 @@ review_status: reviewed
 
 ## 四、漏洞扫描与修复
 
-升级前复扫发现 49 个漏洞（3 critical / 26 high）；核心升级后降至 9 个（5 high）；通过 `pnpm.overrides` 修复 `ws`、`nanoid`、`browserslist`、`source-map-js`、`yaml`、`@babel/core`、`baseline-browser-mapping` 等传递依赖后，最终结果为：
+升级前复扫发现 49 个漏洞（3 critical / 26 high）；核心升级后降至 9 个（5 high）；通过 `pnpm.overrides` 修复 `ws`、`nanoid`、`browserslist`、`source-map-js`、`yaml`、`@babel/core`、`baseline-browser-mapping` 等传递依赖后，生产依赖审计结果为：
 
 ```text
 No known vulnerabilities found
 ```
 
-审计脚本通过 `npm_config_registry=https://registry.npmjs.org` 强制官方漏洞库，避免本地镜像缺失 audit 接口导致误判。
+推送后 GitHub Dependabot 曾提示 47 条告警，重新扫描后确认其中 Next.js 等告警已标记为 `fixed`，仅剩开发依赖 `js-yaml` 与 `glob` 的 6 条开放告警。随后新增 `js-yaml@<4 → ^3.15.2`、`glob@10.4.5 → ^10.5.0` 精确覆盖。完整审计（含开发依赖）剩余 `diff` 低危、`glob` 中危与 `picomatch` 高危；其中 `picomatch` 当前官方最新版本仍在受影响范围内且 GitHub 已自动驳回，属于无可用修复的上游问题，需持续跟踪。
+
+审计脚本 `scripts/audit.mjs` 强制使用官方 registry 并透传真实退出码，CI 通过 `pnpm run audit` 调用，避免本地镜像缺失 audit 接口导致误判。
 
 ## 五、CI/CD 完善
 

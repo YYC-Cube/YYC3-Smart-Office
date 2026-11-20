@@ -85,5 +85,5 @@ const registerHandler = async (_req: NextRequest, data: z.infer<typeof registerS
 export const POST = withApiHandler(registerHandler, {
   schema: registerSchema,
   method: 'POST',
-  validateCsrf: false,
+  validateCsrf: true,
 });

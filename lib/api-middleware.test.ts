@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
 import { validateCsrfToken } from '@/lib/csrf';
+import { verifyToken } from './auth';
 import { ApiError, createApiResponse, withApiHandler } from './api-middleware';
 
 jest.mock('next/server', () => ({
@@ -17,20 +18,47 @@ jest.mock('@/lib/csrf', () => ({
   validateCsrfToken: jest.fn(),
 }));
 
+jest.mock('./auth', () => ({
+  verifyToken: jest.fn(),
+}));
+
 const mockNextResponseJson = jest.requireMock('next/server').NextResponse.json as jest.Mock;
 const mockValidateCsrfToken = validateCsrfToken as jest.Mock;
+const mockVerifyToken = verifyToken as jest.Mock;
+
+interface RequestOptions {
+  token?: string;
+  cookieToken?: string;
+  csrfHeader?: string;
+}
 
 function makeRequest(
   method: string,
   body: unknown = {},
   url = 'http://localhost/api/test',
+  options: RequestOptions = {},
 ): NextRequest {
   return {
     method,
     url,
     json: jest.fn().mockResolvedValue(body),
+    headers: {
+      get: (name: string) => {
+        const key = name.toLowerCase();
+        if (key === 'authorization') return options.token ? `Bearer ${options.token}` : null;
+        if (key === 'x-csrf-token') return options.csrfHeader ?? null;
+        return null;
+      },
+    },
+    cookies: {
+      get: (name: string) => (
+        name === 'auth_token' && options.cookieToken ? { value: options.cookieToken } : undefined
+      ),
+    },
   } as unknown as NextRequest;
 }
+
+const okHandler = () => jest.fn().mockResolvedValue({ status: 200, json: () => ({}) });
 
 describe('ApiError', () => {
   test('creates ApiError with default properties', () => {
@@ -80,87 +108,111 @@ describe('withApiHandler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockValidateCsrfToken.mockReturnValue(true);
+    mockValidateCsrfToken.mockResolvedValue(true);
   });
 
   test('rejects unsupported methods', async () => {
-    const handler = jest.fn();
-    const wrapped = withApiHandler(handler as never, { method: 'POST' });
-    const response = await wrapped(makeRequest('GET'));
+    const handler = okHandler();
+    const response = await withApiHandler(handler as never, { method: 'POST' })(makeRequest('GET'));
     expect(response.status).toBe(405);
     expect(handler).not.toHaveBeenCalled();
   });
 
-  test('handles OPTIONS preflight', async () => {
-    const wrapped = withApiHandler(jest.fn() as never);
-    const response = await wrapped(makeRequest('OPTIONS'));
+  test('handles OPTIONS preflight without auth', async () => {
+    const response = await withApiHandler(okHandler() as never, { requireAuth: true })(makeRequest('OPTIONS'));
     expect(response.status).toBe(200);
   });
 
   test('handles invalid JSON body', async () => {
     const request = makeRequest('POST');
     (request.json as jest.Mock).mockRejectedValueOnce(new Error('bad json'));
-    const wrapped = withApiHandler(jest.fn() as never);
-    const response = await wrapped(request);
+    const response = await withApiHandler(okHandler() as never)(request);
     expect(response.status).toBe(400);
   });
 
-  test('rejects invalid CSRF token', async () => {
-    mockValidateCsrfToken.mockReturnValue(false);
-    const wrapped = withApiHandler(jest.fn() as never, { validateCsrf: true });
-    const response = await wrapped(makeRequest('POST', { csrfToken: 'bad', name: 'ok' }));
+  test('awaits CSRF validation from body token', async () => {
+    mockValidateCsrfToken.mockResolvedValue(false);
+    const response = await withApiHandler(okHandler() as never, { validateCsrf: true })(
+      makeRequest('POST', { csrfToken: 'bad', name: 'ok' }),
+    );
     expect(response.status).toBe(403);
+    expect(mockValidateCsrfToken).toHaveBeenCalledWith('bad');
   });
 
-  test('accepts valid CSRF token', async () => {
-    const handler = jest.fn().mockResolvedValue({ status: 200, json: () => ({}) });
-    const wrapped = withApiHandler(handler as never, { validateCsrf: true });
-    await wrapped(makeRequest('POST', { csrfToken: 'good', name: 'ok' }));
-    expect(mockValidateCsrfToken).toHaveBeenCalledWith('good');
+  test('accepts CSRF token from request header', async () => {
+    const handler = okHandler();
+    await withApiHandler(handler as never, { validateCsrf: true })(
+      makeRequest('POST', { name: 'ok' }, 'http://localhost/api/test', { csrfHeader: 'header-token' }),
+    );
+    expect(mockValidateCsrfToken).toHaveBeenCalledWith('header-token');
     expect(handler).toHaveBeenCalled();
   });
 
+  test('rejects request without CSRF token', async () => {
+    const response = await withApiHandler(okHandler() as never, { validateCsrf: true })(makeRequest('POST', {}));
+    expect(response.status).toBe(403);
+    expect(mockValidateCsrfToken).not.toHaveBeenCalled();
+  });
+
   test('returns 400 for schema validation failure', async () => {
-    const handler = jest.fn();
-    const wrapped = withApiHandler(handler as never, { schema });
-    const response = await wrapped(makeRequest('POST', { name: 'x' }));
+    const handler = okHandler();
+    const response = await withApiHandler(handler as never, { schema })(makeRequest('POST', { name: 'x' }));
     expect(response.status).toBe(400);
     expect(handler).not.toHaveBeenCalled();
   });
 
   test('passes parsed schema data to handler', async () => {
-    const handler = jest.fn().mockResolvedValue({ status: 200, json: () => ({}) });
-    const wrapped = withApiHandler(handler as never, { schema });
-    await wrapped(makeRequest('POST', { name: 'valid' }));
+    const handler = okHandler();
+    await withApiHandler(handler as never, { schema })(makeRequest('POST', { name: 'valid' }));
     expect(handler).toHaveBeenCalledWith(expect.anything(), { name: 'valid' });
   });
 
   test('passes raw body when no schema is configured', async () => {
-    const handler = jest.fn().mockResolvedValue({ status: 200, json: () => ({}) });
-    const wrapped = withApiHandler(handler as never);
-    await wrapped(makeRequest('POST', { any: 'value' }));
+    const handler = okHandler();
+    await withApiHandler(handler as never)(makeRequest('POST', { any: 'value' }));
     expect(handler).toHaveBeenCalledWith(expect.anything(), { any: 'value' });
   });
 
   test('reads GET query parameters', async () => {
-    const handler = jest.fn().mockResolvedValue({ status: 200, json: () => ({}) });
-    const wrapped = withApiHandler(handler as never);
-    await wrapped(makeRequest('GET', undefined, 'http://localhost/api/test?q=abc'));
+    const handler = okHandler();
+    await withApiHandler(handler as never)(makeRequest('GET', undefined, 'http://localhost/api/test?q=abc'));
     expect(handler).toHaveBeenCalledWith(expect.anything(), { q: 'abc' });
+  });
+
+  test('rejects requireAuth without token', async () => {
+    const response = await withApiHandler(okHandler() as never, { requireAuth: true })(makeRequest('GET'));
+    expect(response.status).toBe(401);
+  });
+
+  test('rejects requireAuth with invalid token', async () => {
+    mockVerifyToken.mockImplementationOnce(() => { throw new Error('invalid'); });
+    const response = await withApiHandler(okHandler() as never, { requireAuth: true })(
+      makeRequest('GET', undefined, 'http://localhost/api/test', { token: 'bad-token' }),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test('attaches verified user for requireAuth', async () => {
+    const user = { id: '1', username: 'tester', role: 'user' };
+    mockVerifyToken.mockReturnValue(user);
+    const handler = okHandler();
+    await withApiHandler(handler as never, { requireAuth: true })(
+      makeRequest('GET', undefined, 'http://localhost/api/test', { cookieToken: 'cookie-token' }),
+    );
+    expect(mockVerifyToken).toHaveBeenCalledWith('cookie-token');
+    expect((handler.mock.calls[0][0] as { user?: unknown }).user).toBe(user);
   });
 
   test('maps ApiError status and message', async () => {
     const handler = jest.fn().mockRejectedValue(new ApiError('forbidden', 403));
-    const wrapped = withApiHandler(handler as never);
-    const response = await wrapped(makeRequest('POST'));
+    const response = await withApiHandler(handler as never)(makeRequest('POST'));
     expect(response.status).toBe(403);
   });
 
   test('maps unknown errors to 500', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const handler = jest.fn().mockRejectedValue(new Error('boom'));
-    const wrapped = withApiHandler(handler as never);
-    const response = await wrapped(makeRequest('POST'));
+    const response = await withApiHandler(handler as never)(makeRequest('POST'));
     expect(response.status).toBe(500);
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();

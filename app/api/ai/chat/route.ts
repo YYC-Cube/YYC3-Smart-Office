@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createApiResponse } from '@/lib/api-middleware';
+import { createApiResponse, withApiHandler } from '@/lib/api-middleware';
 import { aiService } from '@/lib/ai-service';
 import { z } from 'zod';
 
@@ -14,25 +14,22 @@ const chatSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
 });
 
-export async function POST(request: NextRequest) {
+const chatHandler = async (_req: NextRequest, data: z.infer<typeof chatSchema>) => {
   try {
-    const body = await request.json();
-    const validation = chatSchema.safeParse(body);
-
-    if (!validation.success) {
-      return createApiResponse(null, {
-        status: 400,
-        message: validation.error.issues.map(i => i.message).join(', '),
-      });
-    }
-
-    const { messages, model, temperature } = validation.data;
-
-    const response = await aiService.chat(messages, { model, temperature });
-
+    const response = await aiService.chat(data.messages, {
+      model: data.model,
+      temperature: data.temperature,
+    });
     return createApiResponse(response, { status: 200, message: 'success' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'AI服务调用失败';
     return createApiResponse(null, { status: 500, message });
   }
-}
+};
+
+export const POST = withApiHandler(chatHandler, {
+  schema: chatSchema,
+  method: 'POST',
+  requireAuth: true,
+  validateCsrf: true,
+});

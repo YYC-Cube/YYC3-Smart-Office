@@ -98,6 +98,22 @@ kubectl -n yyc create secret generic yyc-smart-office-secrets \
 
 若团队已有 Sealed Secret、Vault Agent 或云 KM，应改用既有方案；具体托管方式待确认（C-07）。`--dry-run=client` 仅生成对象，不把真实值写入本地文件。
 
+已提供受控脚本 `scripts/k8s-secrets.mjs`，推荐用法：
+
+```bash
+# 安全验证，不修改集群
+DATABASE_URL=... JWT_SECRET=... CSRF_SECRET=... IP_HASH_SALT=... CORS_ORIGIN=... \
+  node scripts/k8s-secrets.mjs apply --context <prod-context> --dry-run
+
+# 生产执行（显式 context，值仅来自环境变量）
+node scripts/k8s-secrets.mjs apply --context <prod-context>
+
+# 验证 Deployment 引用并可选检查 rollout
+node scripts/k8s-secrets.mjs verify --context <prod-context> --rollout
+```
+
+脚本拒绝在无 `--context` 时 apply，且不会把 Secret 值写入文件。
+
 ### 4.3 验证命令
 
 ```bash

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="YYC3 Smart-Office 图标可视架构图">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f7fbff"/><stop offset="100%" stop-color="#eef3ff"/></linearGradient>
+    <linearGradient id="hub" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1e3a8a"/><stop offset="55%" stop-color="#2563eb"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="node" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0f2fe"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/></marker>
+    <style>
+      .title{font:700 34px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;fill:#0f172a}
+      .sub{font:500 17px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;fill:#475569}
+      .label{font:600 16px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;fill:#0f172a}
+      .small{font:500 13px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;fill:#475569}
+      .hubtext{font:700 24px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;fill:#fff}
+      .line{stroke:#60a5fa;stroke-width:2.5;marker-end:url(#arrow);opacity:.85}
+      .box{fill:url(#node);stroke:#93c5fd;stroke-width:2}
+      .icon{fill:none;stroke:#1d4ed8;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <text x="60" y="64" class="title">YYC³ Smart-Office 图标可视架构</text>
+  <text x="60" y="94" class="sub">Next.js 16 · React 19 · PG15 + Redis · Docker/K8s · Agentic AI 演进基线</text>
+  <line x1="60" y1="112" x2="1380" y2="112" stroke="#bfdbfe" stroke-width="2"/>
+  <g stroke="#dbeafe" stroke-width="1"><path d="M80 160H1360 M80 260H1360 M80 360H1360 M80 460H1360 M80 560H1360 M80 660H1360 M80 760H1360"/><path d="M120 140V800 M320 140V800 M520 140V800 M720 140V800 M920 140V800 M1120 140V800 M1320 140V800"/></g>
+  <g>
+    <line x1="720" y1="450" x2="250" y2="230" class="line"/><line x1="720" y1="450" x2="520" y2="230" class="line"/><line x1="720" y1="450" x2="920" y2="230" class="line"/><line x1="720" y1="450" x2="1190" y2="230" class="line"/>
+    <line x1="720" y1="450" x2="250" y2="480" class="line"/><line x1="720" y1="450" x2="1190" y2="480" class="line"/>
+    <line x1="720" y1="450" x2="250" y2="720" class="line"/><line x1="720" y1="450" x2="520" y2="720" class="line"/><line x1="720" y1="450" x2="920" y2="720" class="line"/><line x1="720" y1="450" x2="1190" y2="720" class="line"/>
+  </g>
+  <g>
+    <circle cx="720" cy="450" r="108" fill="url(#hub)"/><circle cx="720" cy="450" r="124" fill="none" stroke="#818cf8" stroke-width="3" opacity=".45"/>
+    <path d="M690 430 C670 405 690 380 720 392 C750 380 770 405 750 430 C772 452 758 485 720 490 C682 485 668 452 690 430Z" class="icon" stroke="#fff"/>
+    <path d="M700 420 Q720 438 740 420 M706 458 Q720 470 734 458" class="icon" stroke="#fff"/>
+    <text x="720" y="520" text-anchor="middle" class="hubtext">AI 中枢</text><text x="720" y="548" text-anchor="middle" class="small" fill="#dbeafe">proxy · auth · cache · tools</text>
+  </g>
+  <g transform="translate(150 170)"><rect width="200" height="96" rx="18" class="box"/><path d="M28 48 L40 24 H64 L76 48 L64 72 H40 Z" class="icon"/><text x="94" y="44" class="label">身份认证</text><text x="94" y="66" class="small">JWT · CSRF · RBAC</text></g>
+  <g transform="translate(420 170)"><rect width="200" height="96" rx="18" class="box"/><ellipse cx="52" cy="34" rx="24" ry="9" class="icon"/><path d="M28 34V64C28 70 40 74 52 74S76 70 76 64V34 M28 49C28 55 40 59 52 59S76 55 76 49" class="icon"/><text x="94" y="44" class="label">数据层</text><text x="94" y="66" class="small">PG15 · Drizzle</text></g>
+  <g transform="translate(820 170)"><rect width="200" height="96" rx="18" class="box"/><path d="M58 22 L36 52 H56 L48 76 L76 42 H56 Z" class="icon"/><text x="94" y="44" class="label">缓存层</text><text x="94" y="66" class="small">Redis · CSRF Store</text></g>
+  <g transform="translate(1090 170)"><rect width="200" height="96" rx="18" class="box"/><path d="M28 30H76V70H28Z M40 30V20H64V30 M36 46H68 M36 58H60" class="icon"/><text x="94" y="44" class="label">业务模块</text><text x="94" y="66" class="small">审批 · 日程 · 库存</text></g>
+  <g transform="translate(150 420)"><rect width="200" height="96" rx="18" class="box"/><path d="M30 32H74V70H30Z M30 44H74 M42 54H62" class="icon"/><text x="94" y="44" class="label">文档中心</text><text x="94" y="66" class="small">上传 · 分类 · 权限</text></g>
+  <g transform="translate(1090 420)"><rect width="200" height="96" rx="18" class="box"/><path d="M28 66V36 M46 66V24 M64 66V44 M82 66V30 M24 70H88" class="icon"/><text x="94" y="44" class="label">可观测性</text><text x="94" y="66" class="small">Health · Logs · Metrics</text></g>
+  <g transform="translate(150 660)"><rect width="200" height="96" rx="18" class="box"/><path d="M28 28H76V70H28Z M28 42H76 M42 52H62 M42 60H56" class="icon"/><text x="94" y="44" class="label">组织与权限</text><text x="94" y="66" class="small">用户 · 角色 · 部门</text></g>
+  <g transform="translate(420 660)"><rect width="200" height="96" rx="18" class="box"/><path d="M26 54Q40 30 68 34 M68 34L60 26 M68 34L62 44 M30 66Q46 78 72 66" class="icon"/><text x="94" y="44" class="label">AI 助手</text><text x="94" y="66" class="small">Chat · Agent · Tools</text></g>
+  <g transform="translate(820 660)"><rect width="200" height="96" rx="18" class="box"/><path d="M28 64H76 M36 64V34 M52 64V24 M68 64V42 M32 30L44 18L68 30" class="icon"/><text x="94" y="44" class="label">DevSecOps</text><text x="94" y="66" class="small">CI · CD · Audit</text></g>
+  <g transform="translate(1090 660)"><rect width="200" height="96" rx="18" class="box"/><path d="M30 52H74 M34 52V68H70V52 M40 52V34H64V52 M48 34V24H56V34" class="icon"/><text x="94" y="44" class="label">运行时平台</text><text x="94" y="66" class="small">Docker · K8s · Proxy</text></g>
+  <text x="60" y="846" class="small">图例：蓝色图标为可组合能力域，中心为 AI 中枢与统一代理层；箭头表示调用/数据/治理链路。</text>
+</svg>

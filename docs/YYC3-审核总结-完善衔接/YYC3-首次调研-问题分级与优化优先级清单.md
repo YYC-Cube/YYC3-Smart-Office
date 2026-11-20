@@ -53,10 +53,10 @@ review_status: reviewed
 | P0-02 | 登录路由硬编码三个账号密码哈希；`lib/auth.ts` 含模拟账号且密码校验恒真 | 原 `app/api/auth/login/route.ts:66-97`、`lib/auth.ts:78-109` | 硬编码凭据与认证绕过风险，违反用户硬约束 | **已修复**：删除回退账号；DB 异常返回 503；删除模拟校验函数 | 补登录反向用例并复核所有 API 签名校验 |
 | P0-03 | `IP_HASH_SALT` 使用默认值 `default_salt` | 原 `app/api/auth/login/route.ts:114` | 限流哈希可预测，削弱 IP 维度防护 | **已修复**：改为环境变量必填，模板已补占位符 | 补缺配置用例 |
 | P0-04 | CI 的 lint 与 test 使用 `continue-on-error: true`；Build 使用 `SKIP_ENV_VALIDATION` | 原 `.github/workflows/ci.yml:38,48,55` | 质量门禁形同虚设，失败被掩盖 | **已修复**：移除绕过项，新增 `pnpm typecheck` 与 `pnpm run audit` | 保持所有门禁严格失败 |
-| P0-05 | K8s Deployment 未注入 `DATABASE_URL`/`JWT_SECRET` 等生产配置 | 原 `infra/k8s/deployment.yaml:28-38`、`configmap.yaml:6-9` | 容器缺少必需配置或回退到不安全默认值 | **清单已修复**：新增 `secretKeyRef` 注入 | 集群 Secret 创建与实际 Pod 启动待确认（C-07） |
+| P0-05 | K8s Deployment 未注入 `DATABASE_URL`/`JWT_SECRET` 等生产配置 | 原 `infra/k8s/deployment.yaml:28-38`、`configmap.yaml:6-9` | 容器缺少必需配置或回退到不安全默认值 | **清单与脚本已修复**：新增 `secretKeyRef` 与 `scripts/k8s-secrets.mjs`，dry-run 通过 | 生产集群上下文未配置，真实 Secret 创建与 Pod 启动仍待运维执行 |
 | P0-06 | 生产依赖存在 49 个漏洞，含 3 critical、26 high | 原 `pnpm audit` 输出 | 已知 RCE 与高危漏洞，生产不可接受 | **已修复**：升级 Next.js 16 核心栈并通过覆盖清零生产漏洞；GitHub 开放告警为 0 | 持续跟踪无可用修复的上游条目 |
 | P0-07 | 覆盖率 5.24%，四项阈值均低于 80% | 原 `jest --coverage` 输出 | 核心链路无回归保护，质量门禁持续红灯 | **已修复**：核心逻辑补测后四项 ≥80%，阈值未降低 | 继续补 skipped 用例与 Redis/熔断边界 |
-| P0-08 | `pages.yml` 静态导出前删除 `app/api` | `.github/workflows/pages.yml:39` | 若产物对外发布则认证与 API 不可用 | **待确认**：用途与发布目标未知（C-06） | 确认前不得将该产物用于生产入口 |
+| P0-08 | `pages.yml` 静态导出前删除 `app/api` | `.github/workflows/pages.yml:39` | 若产物对外发布则认证与 API 不可用 | **已收口**：改为手工确认的静态预览，不再随 main 自动发布，移除 `SKIP_ENV_VALIDATION` | 生产入口固定为 K8s 部署，Pages 仅供预览 |
 
 ## 三、P1 严重问题
 
@@ -65,11 +65,11 @@ review_status: reviewed
 | P1-01 | README 无证据评分并标记「通过验收」；技术版本过期 | 原 `README.md:9-18,23,41,95,119` | 对外传达虚假成熟度 | **已修复**：改为实测状态表并修正版本 | 后续每次大改同步状态表 |
 | P1-02 | README 指示 `cp .env.example .env`，但文件不存在 | 原 `README.md:172`；仓库检索 | 新成员无法按文档启动 | **已修复**：新增仅含占位符的 `.env.example` | 确认生产模板与本地模板差异 |
 | P1-03 | 生产 CORS 域名硬编码在 `next.config.mjs` | 原 `next.config.mjs:28` | 配置不可移植，违反环境变量注入要求 | **已修复**：改为 `CORS_ORIGIN` 环境变量，生产缺失即报错 | CI 与 K8s 已补该变量 |
-| P1-04 | `lib/logger.ts` 直接 `JSON.stringify(data)`，无敏感字段脱敏 | `lib/logger.ts:25,36` | 密码/令牌/PII 可能落盘和入库 | **未闭环** | 实现字段级脱敏与审计测试 |
+| P1-04 | `lib/logger.ts` 直接 `JSON.stringify(data)`，无敏感字段脱敏 | 原 `lib/logger.ts:25,36` | 密码/令牌/PII 可能落盘和入库 | **已修复**：递归脱敏、令牌/连接串/IP 模式遮蔽，新增审计测试 | 持续复核敏感键名单 |
 | P1-05 | `lib` 与 `hooks` 存在双向引用风险 | `lib/api-client.ts → hooks/use-csrf`；hooks → lib | 可能演变为循环依赖，破坏单向模块规范 | **待专项复核** | 绘制依赖图并拆出纯工具层 |
-| P1-06 | Edge 中间件仅解码 JWT 载荷，不做签名校验 | `middleware.ts:91-99,145` | 若有 API 路由未独立 `verifyToken`，可形成越权 | **待确认覆盖** | 全量审计 API 路由鉴权调用 |
-| P1-07 | pre-commit 仅格式化，无密钥扫描与测试门禁 | `.husky/pre-commit:4`、`.huskyrc:4` | 误提交密钥与坏代码风险 | **未闭环** | 引入密钥扫描并在 CI 强制 |
-| P1-08 | `next lint` 在 Next 16 移除 | `pnpm lint` 输出 | 工具链过期 | **未闭环** | 迁移到 ESLint CLI |
+| P1-06 | Edge 中间件仅解码 JWT 载荷，不做签名校验 | 原 `middleware.ts:91-99,145` | 若有 API 路由未独立 `verifyToken`，可形成越权 | **已修复**：withApiHandler 实现 requireAuth 并为提醒/AI/DB/弹性接口启用，CSRF 改为 await | 持续审计新增 API 路由 |
+| P1-07 | pre-commit 仅格式化，无密钥扫描与测试门禁 | 原 `.husky/pre-commit:4` | 误提交密钥与坏代码风险 | **已修复**：pre-commit 与 CI 加入密钥扫描、lint、typecheck、测试门禁 | 维护扫描规则白名单 |
+| P1-08 | `next lint` 在 Next 16 移除 | `pnpm lint` 输出 | 工具链过期 | **已修复**：迁移 ESLint CLI 扁平配置 | 持续清理 warning |
 | P1-09 | 构建复测被 IDE safe-delete 钩子拦截 | `pnpm build` 输出 | 无法确认整改后构建状态 | **环境阻塞** | 用户确认后清理 `.next` 再跑，不绕过钩子 |
 
 ## 四、P2 一般问题

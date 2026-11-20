@@ -169,6 +169,9 @@ function renderAIResponse(content: string) {
 ### 5.1 依赖审计
 
 ```bash
+# 提交前密钥扫描（pre-commit 自动执行，CI 全仓执行）
+pnpm run scan-secrets
+
 # 受控审计脚本（强制官方 registry）
 pnpm run audit
 

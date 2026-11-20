@@ -12,7 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit",
-    "audit": "node scripts/audit.mjs"
+    "audit": "node scripts/audit.mjs",
+    "scan-secrets": "node scripts/scan-secrets.cjs --all"
   },
   "engines": {
     "node": ">=20.9.0"

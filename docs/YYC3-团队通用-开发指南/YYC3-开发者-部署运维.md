@@ -132,6 +132,9 @@ jobs:
       - name: Test and Coverage
         run: pnpm exec jest --ci --coverage --coverageReporters=text --runInBand
 
+      - name: Secret Scan
+        run: pnpm run scan-secrets
+
       - name: Dependency Audit
         run: pnpm run audit
 
@@ -143,6 +146,7 @@ jobs:
 
 | 门禁 | 失败动作 |
 | ---- | ---- |
+| `pnpm run scan-secrets` 无命中 | ❌ 阻止合并 |
 | `pnpm lint` 零错误 | ❌ 阻止合并 |
 | `pnpm typecheck` 零错误 | ❌ 阻止合并 |
 | `pnpm test` 与覆盖率门槛 | ❌ 阻止合并 |

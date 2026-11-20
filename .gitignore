@@ -45,6 +45,7 @@ test-output.txt
 
 # OS
 .DS_Store
+app/.DS_Store
 Thumbs.db
 
 # Python

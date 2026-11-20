@@ -1,4 +1,9 @@
 #!/bin/sh
+set -e
 . "$(dirname "$0")/_/husky.sh"
 
+node scripts/scan-secrets.cjs
+pnpm lint
+pnpm typecheck
+pnpm exec jest --runInBand --ci
 npx pretty-quick --staged

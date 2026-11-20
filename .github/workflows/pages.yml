@@ -1,12 +1,15 @@
-name: Deploy to GitHub Pages
+name: Static Preview (No API) — Manual Only
 
+# C-04 收口：GitHub Pages 仅作为静态预览，不作为生产入口。
+# 生产入口由 cd.yml 部署到 Kubernetes；本工作流不再随 main 推送自动触发。
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
   workflow_dispatch:
+    inputs:
+      confirm_static_preview:
+        description: 'Confirm this build is a static preview without API routes'
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -14,11 +17,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-deploy
+  group: pages-static-preview
   cancel-in-progress: true
 
 jobs:
   build:
+    if: ${{ inputs.confirm_static_preview }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,19 +34,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "20.19.5"
           cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Remove API routes for static export
+      - name: Remove API routes for static preview
         run: rm -rf app/api
 
-      - name: Build static export
+      - name: Build static preview
         run: pnpm build
         env:
           NEXT_STATIC_EXPORT: "1"
-          SKIP_ENV_VALIDATION: "1"
+
+      - name: Assert static output
+        run: test -f out/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -50,12 +56,13 @@ jobs:
           path: ./out
 
   deploy:
+    if: ${{ inputs.confirm_static_preview }}
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy static preview to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

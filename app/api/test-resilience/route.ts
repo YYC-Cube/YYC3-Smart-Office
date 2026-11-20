@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { defaultResilienceMiddleware } from '@/middleware/resilience-middleware';
+import { withApiHandler } from '@/lib/api-middleware';
 
 // 测试API处理函数
 async function testHandler() {
@@ -30,7 +31,8 @@ async function testHandler() {
   }
 }
 
-// 导出GET处理函数，应用resilience中间件
-export const GET = async (request: NextRequest) => {
-  return defaultResilienceMiddleware(request, testHandler);
-};
+// 导出 GET 处理函数：先鉴权，再应用 resilience 中间件
+export const GET = withApiHandler(
+  (async (request: NextRequest) => defaultResilienceMiddleware(request, testHandler)) as never,
+  { method: 'GET', requireAuth: true },
+);

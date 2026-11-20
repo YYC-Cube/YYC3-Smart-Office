@@ -32,6 +32,7 @@ const config: Config = {
     'lib/validations.ts',
     'lib/validations/index.ts',
     'lib/utils.ts',
+    'lib/logger.ts',
     'hooks/use-csrf.tsx',
     '!**/*.d.ts',
     '!**/node_modules/**',

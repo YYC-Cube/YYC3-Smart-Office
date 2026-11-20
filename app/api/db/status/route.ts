@@ -69,5 +69,6 @@ const dbStatusHandler: import('@/lib/api-middleware').ApiHandler<import('zod').Z
 
 export const GET = withApiHandler(dbStatusHandler, {
   method: 'GET',
-  validateCsrf: false, // GET请求不需要CSRF验证
+  requireAuth: true,
+  validateCsrf: false, // GET 请求不需要 CSRF 验证
 });

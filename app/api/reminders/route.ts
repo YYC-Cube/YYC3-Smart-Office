@@ -75,5 +75,6 @@ const reminderHandler = async (_req: NextRequest, data: z.infer<typeof reminderS
 export const POST = withApiHandler(reminderHandler, {
   schema: reminderSchema,
   method: 'POST',
+  requireAuth: true,
   validateCsrf: true,
 });
